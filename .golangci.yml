@@ -1,0 +1,28 @@
+version: "2"
+run:
+  timeout: 5m
+  # Search for config up to the root
+  allow-parallel-runners: true
+
+linters:
+  default: none
+  enable:
+    - govet
+    - gosec
+    - goconst
+    - unused
+    - revive
+    - staticcheck
+    - errcheck
+    - gocritic
+    - ineffassign
+    - dupl
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - dupl # Exclude duplicate check from tests
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
