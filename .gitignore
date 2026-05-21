@@ -1,0 +1,20 @@
+# Binaries and executables
+/bin/
+tusshi
+!tusshi/
+
+# Test coverage and profiling
+*.test
+*.out
+*.prof
+
+# Workspace-specific Gemini/tool directories
+.gemini/
+.system_generated/
+walkthrough.md
+implementation_plan.md
+task.md
+
+# Operating System Files
+.DS_Store
+Thumbs.db
