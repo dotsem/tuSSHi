@@ -23,6 +23,8 @@ const (
 	ModeCommand
 	// ModeForm indicates active interactive CRUD form focus.
 	ModeForm
+	// ModeHelp indicates interactive help dialog focus.
+	ModeHelp
 )
 
 const (
@@ -69,7 +71,10 @@ type Model struct {
 
 // Init initializes the Bubble Tea application state and returns initial commands.
 func (m *Model) Init() tea.Cmd {
-	return textinput.Blink
+	return tea.Batch(
+		tea.SetWindowTitle("tuSSHi"),
+		textinput.Blink,
+	)
 }
 
 // NewModel initializes and configures a TUSSHI TUI application state model.

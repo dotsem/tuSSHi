@@ -2,12 +2,70 @@
 package tui
 
 import (
-	"fmt"
-	"path/filepath"
 	"strings"
+
+	"tusshi/pkg/tui/commands"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+const (
+	quitCmd   = "q, quit"
+	newCmd    = "new"
+	editCmd   = "e, edit"
+	deleteCmd = "d, del, delete"
+	moveCmd   = "m, move"
+	helpCmd   = "h, help"
+)
+
+func matchesCommand(cmd string, shouldMatch string) bool {
+	cmds := strings.SplitSeq(shouldMatch, ",")
+	for s := range cmds {
+		if cmd == strings.TrimSpace(s) {
+			return true
+		}
+	}
+	return false
+}
+
+// cmdContext implements commands.Context to proxy actions to the Model.
+type cmdContext struct {
+	model *Model
+	cmd   tea.Cmd
+}
+
+// Quit proxies the quit command to Bubble Tea runtime.
+func (c *cmdContext) Quit() {
+	c.cmd = tea.Quit
+}
+
+// OpenHelp sets the model mode to help.
+func (c *cmdContext) OpenHelp() {
+	c.model.Mode = ModeHelp
+}
+
+// OpenForm sets up and opens the add/edit interactive form.
+func (c *cmdContext) OpenForm(action string) {
+	c.model.FormAction = action
+	c.model.ActiveForm = c.model.BuildHostForm(c.model.ActiveTab)
+	c.model.Mode = ModeForm
+	c.cmd = c.model.ActiveForm.Init()
+}
+
+// SetAlert sets the model alert text banner.
+func (c *cmdContext) SetAlert(text string) {
+	c.model.AlertText = text
+}
+
+// SetError sets the model error text banner.
+func (c *cmdContext) SetError(text string) {
+	c.model.ErrorText = text
+}
+
+// Reload reloads the configurations.
+func (c *cmdContext) Reload() {
+	c.model.Reload()
+}
 
 // executeCommand runs commands typed into the command mode bar.
 func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
@@ -17,69 +75,44 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 	}
 
 	cmd := parts[0]
-	switch cmd {
-	case "q", "quit":
-		return m, tea.Quit
+	var action func(commands.Context)
 
-	case "new":
-		m.FormAction = actionAdd
-		m.ActiveForm = m.BuildHostForm(m.ActiveTab)
-		m.Mode = ModeForm
-		return m, m.ActiveForm.Init()
+	switch {
+	case matchesCommand(cmd, quitCmd):
+		action = commands.Quit()
 
-	case actionEdit, "e":
-		if len(m.Filtered) > 0 {
-			m.FormAction = actionEdit
-			m.ActiveForm = m.BuildHostForm(m.ActiveTab)
-			m.Mode = ModeForm
-			return m, m.ActiveForm.Init()
-		}
+	case matchesCommand(cmd, newCmd):
+		action = commands.New()
 
-	case "delete", "del", "d":
+	case matchesCommand(cmd, editCmd):
+		action = commands.Edit(len(m.Filtered) > 0)
+
+	case matchesCommand(cmd, deleteCmd):
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
-			if err := m.Manager.DeleteHost(selected.Alias); err == nil {
-				m.AlertText = fmt.Sprintf("Deleted connection %q.", selected.Alias)
-			} else {
-				m.ErrorText = "Delete error: " + err.Error()
-			}
-			m.Reload()
+			action = commands.Delete(m.Manager, selected)
+		} else {
+			return m, nil
 		}
 
-	case "move", "m":
+	case matchesCommand(cmd, moveCmd):
 		if len(m.Filtered) > 0 {
-			if len(parts) < 2 {
-				m.ErrorText = "Usage: :move <target-file-nickname>"
-				return m, nil
-			}
-
-			// Find matched filepath from file order nicknames
-			targetNickname := parts[1]
-			var matchedFile string
-			for _, file := range m.Manager.FileOrder {
-				if filepath.Base(file) == targetNickname || strings.TrimSuffix(filepath.Base(file), filepath.Ext(file)) == targetNickname {
-					matchedFile = file
-					break
-				}
-			}
-
-			if matchedFile == "" {
-				// If target doesn't exist, create it relative to primary dir
-				matchedFile = filepath.Join(filepath.Dir(m.Manager.PrimaryPath), targetNickname)
-			}
-
 			selected := m.Filtered[m.SelectedIndex]
-			if err := m.Manager.MoveHost(selected.Alias, matchedFile); err == nil {
-				m.AlertText = fmt.Sprintf("Moved %q to %s.", selected.Alias, filepath.Base(matchedFile))
-			} else {
-				m.ErrorText = "Move error: " + err.Error()
-			}
-			m.Reload()
+			action = commands.Move(m.Manager, selected, parts)
+		} else {
+			return m, nil
 		}
+
+	case matchesCommand(cmd, helpCmd):
+		action = commands.Help()
 
 	default:
 		m.ErrorText = "Unknown command: " + cmd
+		return m, nil
 	}
 
-	return m, nil
+	ctx := &cmdContext{model: m}
+	action(ctx)
+
+	return m, ctx.cmd
 }

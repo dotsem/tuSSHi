@@ -22,14 +22,24 @@ func (m *Model) View() string {
 
 	bgString := m.renderNormalView(m.Width, m.Height)
 
+	var dialogContent string
+	var showDialog bool
+
 	if m.Mode == ModeForm && m.ActiveForm != nil {
+		dialogContent = m.ActiveForm.View()
+		showDialog = true
+	} else if m.Mode == ModeHelp {
+		dialogContent = m.renderHelpDialog()
+		showDialog = true
+	}
+
+	if showDialog {
 		bgLines := strings.Split(stripANSI(bgString), "\n")
 
 		dialogWidth := min(60, m.Width-4)
 		dialogHeight := min(16, m.Height-2)
 
-		formView := m.ActiveForm.View()
-		dialogBox := StyleDialog.Width(dialogWidth).Height(dialogHeight).Render(formView)
+		dialogBox := StyleDialog.Width(dialogWidth).Height(dialogHeight).Render(dialogContent)
 		dialogLines := strings.Split(dialogBox, "\n")
 
 		dialogW := lipgloss.Width(dialogBox)
@@ -116,7 +126,7 @@ func (m *Model) renderHeader() string {
 	}
 
 	tabsRow := lipgloss.JoinHorizontal(lipgloss.Left, tabs...)
-	title := StyleTitle.Render(" TUSSHI ")
+	title := StyleTitle.Render(" tuSSHi ")
 	headerTop := lipgloss.JoinHorizontal(lipgloss.Left, title, "── ", tabsRow)
 
 	var searchBar string
@@ -340,4 +350,34 @@ func truncate(s string, w int) string {
 		return s[:w]
 	}
 	return s
+}
+
+// renderHelpDialog constructs the help dialog text with a title and available commands with descriptions.
+func (m *Model) renderHelpDialog() string {
+	titleStyle := lipgloss.NewStyle().
+		Foreground(ColorPrimary).
+		Bold(true).
+		Align(lipgloss.Center).
+		Width(50)
+
+	header := titleStyle.Render("Available Commands")
+	divider := lipgloss.NewStyle().Foreground(ColorMuted).Render(strings.Repeat("─", 50))
+
+	cmdStyle := lipgloss.NewStyle().Foreground(ColorPrimary).Bold(true)
+	descStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
+
+	rows := []string{
+		header,
+		divider,
+		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":new"), descStyle.Render("Create a new connection")),
+		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":edit, :e"), descStyle.Render("Edit the selected connection")),
+		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":delete, :del, :d"), descStyle.Render("Delete the selected connection")),
+		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":move, :m"), descStyle.Render("Move connection to a file/tab")),
+		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":quit, :q"), descStyle.Render("Quit the application")),
+		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":help, :h"), descStyle.Render("Show this help dialog")),
+		"",
+		lipgloss.NewStyle().Foreground(ColorMuted).Align(lipgloss.Center).Width(50).Render("Press Esc to close"),
+	}
+
+	return strings.Join(rows, "\n")
 }

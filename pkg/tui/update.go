@@ -45,6 +45,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Delegate based on active mode
 	switch m.Mode {
+	case ModeHelp:
+		if keyMsg, ok := msg.(tea.KeyMsg); ok {
+			switch keyMsg.String() {
+			case keyEsc, "q", keyEnter:
+				m.Mode = ModeNormal
+				return m, nil
+			}
+		}
+		return m, nil
+
 	case ModeForm:
 		if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == keyEsc {
 			m.Mode = ModeNormal
