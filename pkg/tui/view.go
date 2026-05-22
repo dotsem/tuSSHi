@@ -197,10 +197,7 @@ func (m *Model) renderTable(width, maxHeight int) string {
 			strings.Repeat("─", wUser),
 		)
 	default:
-		wTotal := width - 6
-		if wTotal < 10 {
-			wTotal = 10
-		}
+		wTotal := max(width-6, 10)
 		wAlias = int(float64(wTotal) * 0.40)
 		wName = wTotal - wAlias
 

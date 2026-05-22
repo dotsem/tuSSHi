@@ -68,7 +68,7 @@ var (
 
 	StyleHeaderBox = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(ColorMuted).
+			BorderForeground(ColorPrimary).
 			Padding(0, 1)
 
 	StyleBodyBox = lipgloss.NewStyle().
@@ -78,7 +78,7 @@ var (
 
 	StyleFooterBox = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(ColorMuted).
+			BorderForeground(ColorPrimary).
 			Padding(0, 1)
 
 	StyleDialog = lipgloss.NewStyle().
