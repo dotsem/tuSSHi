@@ -79,3 +79,40 @@ func TestTUICommandExec(t *testing.T) {
 	_, isQuit := msg.(tea.QuitMsg)
 	assert.True(t, isQuit)
 }
+
+// TestTUIConfigCommands tests executing config file management commands in the TUI.
+func TestTUIConfigCommands(t *testing.T) {
+	tmpDir := t.TempDir()
+	primaryPath := filepath.Join(tmpDir, "config")
+
+	err := os.WriteFile(primaryPath, []byte("# Primary\n"), 0600)
+	assert.NoError(t, err)
+
+	mgr := config.NewManager(primaryPath)
+	err = mgr.Load()
+	assert.NoError(t, err)
+
+	m := NewModel(mgr)
+
+	// 1. Test add-config command execution
+	subPath := filepath.Join(tmpDir, "sub-config-tui")
+	_, _ = m.executeCommand("add-config " + subPath)
+	assert.FileExists(t, subPath)
+	assert.Contains(t, m.Manager.FileOrder, subPath)
+	assert.Equal(t, subPath, m.ActiveTab)
+
+	// 2. Test rename-config command execution
+	renamedPath := filepath.Join(tmpDir, "renamed-config-tui")
+	_, _ = m.executeCommand("rename-config " + renamedPath)
+	assert.FileExists(t, renamedPath)
+	assert.NoFileExists(t, subPath)
+	assert.Contains(t, m.Manager.FileOrder, renamedPath)
+	assert.Equal(t, renamedPath, m.ActiveTab)
+
+	// 3. Test delete-config command execution
+	_, _ = m.executeCommand("delete-config")
+	assert.NoFileExists(t, renamedPath)
+	assert.NotContains(t, m.Manager.FileOrder, renamedPath)
+	assert.Equal(t, "All", m.ActiveTab)
+}
+

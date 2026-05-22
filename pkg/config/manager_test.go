@@ -199,3 +199,75 @@ Host my-host
 	assert.NoError(t, err)
 	assert.Len(t, mgr4.GetHosts(), 1)
 }
+
+// TestManagerConfigFileCRUD tests creating, renaming, and deleting config files.
+func TestManagerConfigFileCRUD(t *testing.T) {
+	tmpDir := t.TempDir()
+	primaryPath := filepath.Join(tmpDir, "config")
+	err := os.WriteFile(primaryPath, []byte("# Primary\n"), 0600)
+	assert.NoError(t, err)
+
+	mgr := NewManager(primaryPath)
+	err = mgr.Load()
+	assert.NoError(t, err)
+
+	subPath := filepath.Join(tmpDir, "sub-config")
+
+	// 1. Add Config File
+	err = mgr.AddConfigFile(subPath)
+	assert.NoError(t, err)
+	assert.FileExists(t, subPath)
+	assert.Contains(t, mgr.FileOrder, subPath)
+
+	// Check if Include directive is added in primary
+	primaryContent, err := os.ReadFile(primaryPath)
+	assert.NoError(t, err)
+	relSub, err := filepath.Rel(filepath.Dir(primaryPath), subPath)
+	assert.NoError(t, err)
+	assert.Contains(t, string(primaryContent), "Include "+relSub)
+
+	// 2. Rename Config File
+	renamedPath := filepath.Join(tmpDir, "renamed-config")
+	err = mgr.RenameConfigFile(subPath, renamedPath)
+	assert.NoError(t, err)
+	assert.FileExists(t, renamedPath)
+	assert.NoFileExists(t, subPath)
+	assert.Contains(t, mgr.FileOrder, renamedPath)
+	assert.NotContains(t, mgr.FileOrder, subPath)
+
+	// Check if Include is updated in primary
+	primaryContent2, err := os.ReadFile(primaryPath)
+	assert.NoError(t, err)
+	relRenamed, err := filepath.Rel(filepath.Dir(primaryPath), renamedPath)
+	assert.NoError(t, err)
+	assert.Contains(t, string(primaryContent2), "Include "+relRenamed)
+	assert.NotContains(t, string(primaryContent2), "Include "+relSub)
+
+	// 3. Prevent deleting if connections are present
+	h := &Host{
+		Alias: "test-host",
+		Name:  "127.0.0.1",
+	}
+	err = mgr.AddHost(renamedPath, h)
+	assert.NoError(t, err)
+
+	err = mgr.DeleteConfigFile(renamedPath)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "connections are still present")
+
+	// Delete host first
+	err = mgr.DeleteHost("test-host")
+	assert.NoError(t, err)
+
+	// 4. Delete Config File successfully when no connections are present
+	err = mgr.DeleteConfigFile(renamedPath)
+	assert.NoError(t, err)
+	assert.NoFileExists(t, renamedPath)
+	assert.NotContains(t, mgr.FileOrder, renamedPath)
+
+	// Check if Include is removed from primary
+	primaryContent3, err := os.ReadFile(primaryPath)
+	assert.NoError(t, err)
+	assert.NotContains(t, string(primaryContent3), "Include "+relRenamed)
+}
+

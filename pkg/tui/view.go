@@ -37,7 +37,7 @@ func (m *Model) View() string {
 		bgLines := strings.Split(stripANSI(bgString), "\n")
 
 		dialogWidth := min(60, m.Width-4)
-		dialogHeight := min(16, m.Height-2)
+		dialogHeight := min(20, m.Height-2)
 
 		dialogBox := StyleDialog.Width(dialogWidth).Height(dialogHeight).Render(dialogContent)
 		dialogLines := strings.Split(dialogBox, "\n")
@@ -358,10 +358,10 @@ func (m *Model) renderHelpDialog() string {
 		Foreground(ColorPrimary).
 		Bold(true).
 		Align(lipgloss.Center).
-		Width(50)
+		Width(54)
 
 	header := titleStyle.Render("Available Commands")
-	divider := lipgloss.NewStyle().Foreground(ColorMuted).Render(strings.Repeat("─", 50))
+	divider := lipgloss.NewStyle().Foreground(ColorMuted).Render(strings.Repeat("─", 54))
 
 	cmdStyle := lipgloss.NewStyle().Foreground(ColorPrimary).Bold(true)
 	descStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
@@ -369,14 +369,17 @@ func (m *Model) renderHelpDialog() string {
 	rows := []string{
 		header,
 		divider,
-		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":new"), descStyle.Render("Create a new connection")),
-		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":edit, :e"), descStyle.Render("Edit the selected connection")),
-		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":delete, :del, :d"), descStyle.Render("Delete the selected connection")),
-		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":move, :m"), descStyle.Render("Move connection to a file/tab")),
-		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":quit, :q"), descStyle.Render("Quit the application")),
-		fmt.Sprintf("  %-16s %s", cmdStyle.Render(":help, :h"), descStyle.Render("Show this help dialog")),
+		fmt.Sprintf("  %-22s %s", cmdStyle.Render(newCmd), descStyle.Render("Create a new connection")),
+		fmt.Sprintf("  %-22s %s", cmdStyle.Render(editCmd), descStyle.Render("Edit selected connection")),
+		fmt.Sprintf("  %-22s %s", cmdStyle.Render(deleteCmd), descStyle.Render("Delete selected connection")),
+		fmt.Sprintf("  %-22s %s", cmdStyle.Render(moveCmd), descStyle.Render("Move connection to a file/tab")),
+		fmt.Sprintf("  %-22s %s", cmdStyle.Render(addConfigCmd), descStyle.Render("Add a new config file")),
+		fmt.Sprintf("  %-22s %s", cmdStyle.Render(renameConfigCmd), descStyle.Render("Rename a config file")),
+		fmt.Sprintf("  %-22s %s", cmdStyle.Render(deleteConfigCmd), descStyle.Render("Delete empty config file")),
+		fmt.Sprintf("  %-22s %s", cmdStyle.Render(quitCmd), descStyle.Render("Quit the application")),
+		fmt.Sprintf("  %-22s %s", cmdStyle.Render(helpCmd), descStyle.Render("Show this help dialog")),
 		"",
-		lipgloss.NewStyle().Foreground(ColorMuted).Align(lipgloss.Center).Width(50).Render("Press Esc to close"),
+		lipgloss.NewStyle().Foreground(ColorMuted).Align(lipgloss.Center).Width(54).Render("Press Esc to close"),
 	}
 
 	return strings.Join(rows, "\n")

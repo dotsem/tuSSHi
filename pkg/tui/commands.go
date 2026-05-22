@@ -10,12 +10,15 @@ import (
 )
 
 const (
-	quitCmd   = "q, quit"
-	newCmd    = "new"
-	editCmd   = "e, edit"
-	deleteCmd = "d, del, delete"
-	moveCmd   = "m, move"
-	helpCmd   = "h, help"
+	quitCmd         = "q, quit"
+	newCmd          = "new"
+	editCmd         = "e, edit"
+	deleteCmd       = "d, del, delete, rm"
+	moveCmd         = "m, move, mv"
+	helpCmd         = "h, help"
+	addConfigCmd    = "add-config, config-add, new-config"
+	renameConfigCmd = "rename-config, config-rename, mvconfig, mvconf"
+	deleteConfigCmd = "delete-config, config-delete, rmconfig, rmconf"
 )
 
 func matchesCommand(cmd string, shouldMatch string) bool {
@@ -67,6 +70,16 @@ func (c *cmdContext) Reload() {
 	c.model.Reload()
 }
 
+// GetActiveTab returns the model's active tab path.
+func (c *cmdContext) GetActiveTab() string {
+	return c.model.ActiveTab
+}
+
+// SetActiveTab sets the model's active tab path.
+func (c *cmdContext) SetActiveTab(tab string) {
+	c.model.ActiveTab = tab
+}
+
 // executeCommand runs commands typed into the command mode bar.
 func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 	parts := strings.Fields(strings.TrimPrefix(raw, ":"))
@@ -105,6 +118,15 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 
 	case matchesCommand(cmd, helpCmd):
 		action = commands.Help()
+
+	case matchesCommand(cmd, addConfigCmd):
+		action = commands.AddConfig(m.Manager, parts)
+
+	case matchesCommand(cmd, renameConfigCmd):
+		action = commands.RenameConfig(m.Manager, parts)
+
+	case matchesCommand(cmd, deleteConfigCmd):
+		action = commands.DeleteConfig(m.Manager, parts)
 
 	default:
 		m.ErrorText = "Unknown command: " + cmd

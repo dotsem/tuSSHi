@@ -8,4 +8,7 @@ type Context interface {
 	SetAlert(text string)
 	SetError(text string)
 	Reload()
+	GetActiveTab() string
+	SetActiveTab(tab string)
 }
+
