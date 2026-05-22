@@ -105,9 +105,25 @@ func (m *Model) Reload() {
 	}
 	m.Hosts = m.Manager.GetHosts()
 
-	// Rebuild tabs based on tracked source files
 	m.Tabs = []string{tabAll}
-	m.Tabs = append(m.Tabs, m.Manager.FileOrder...)
+	for _, f := range m.Manager.FileOrder {
+		// Filter out the "config" file as it can't be renamed or deleted and just creates confusion.
+		if f == m.Manager.PrimaryPath {
+			hasConnections := false
+			for _, h := range m.Hosts {
+				if h.SourceFile == f {
+					hasConnections = true
+					break
+				}
+			}
+			if hasConnections {
+				m.Tabs = append(m.Tabs, f)
+			}
+			continue
+		}
+		// All other config files are added as tabs
+		m.Tabs = append(m.Tabs, f)
+	}
 
 	// Default active tab to All if not set or invalid
 	tabValid := false
