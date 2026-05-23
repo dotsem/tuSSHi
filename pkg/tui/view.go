@@ -31,6 +31,9 @@ func (m *Model) View() string {
 	} else if m.Mode == ModeHelp {
 		dialogContent = m.renderHelpDialog()
 		showDialog = true
+	} else if m.Mode == ModeConfirm && m.ConfirmComponent != nil {
+		dialogContent = m.ConfirmComponent.View(54)
+		showDialog = true
 	}
 
 	if showDialog {

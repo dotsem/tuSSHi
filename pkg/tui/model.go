@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"tusshi/pkg/config"
+	"tusshi/pkg/tui/components"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -25,6 +26,8 @@ const (
 	ModeForm
 	// ModeHelp indicates interactive help dialog focus.
 	ModeHelp
+	// ModeConfirm indicates active confirmation dialog focus.
+	ModeConfirm
 )
 
 const (
@@ -67,6 +70,9 @@ type Model struct {
 	// Alerts
 	AlertText string
 	ErrorText string
+
+	// Reusable components
+	ConfirmComponent *components.Confirm
 }
 
 // Init initializes the Bubble Tea application state and returns initial commands.

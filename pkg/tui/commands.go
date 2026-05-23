@@ -2,9 +2,11 @@
 package tui
 
 import (
+	"fmt"
 	"strings"
 
 	"tusshi/pkg/tui/commands"
+	"tusshi/pkg/tui/components"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -103,7 +105,12 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 	case matchesCommand(cmd, deleteCmd):
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
-			action = commands.Delete(m.Manager, selected)
+			m.ConfirmComponent = components.NewConfirm(
+				"Delete Connection?",
+				fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
+			)
+			m.Mode = ModeConfirm
+			return m, nil
 		} else {
 			return m, nil
 		}

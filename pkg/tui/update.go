@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"tusshi/pkg/ssh"
+	"tusshi/pkg/tui/commands"
+	"tusshi/pkg/tui/components"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -45,6 +47,39 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Delegate based on active mode
 	switch m.Mode {
+	case ModeConfirm:
+		if keyMsg, ok := msg.(tea.KeyMsg); ok {
+			keyStr := keyMsg.String()
+			var componentKey string
+			switch keyStr {
+			case "left", "h":
+				componentKey = "left"
+			case "right", "l":
+				componentKey = "right"
+			case "enter":
+				componentKey = "enter"
+			case "esc", "q":
+				componentKey = "esc"
+			}
+
+			if componentKey != "" && m.ConfirmComponent != nil {
+				done, confirmed := m.ConfirmComponent.Update(componentKey)
+				if done {
+					m.Mode = ModeNormal
+					if confirmed && len(m.Filtered) > 0 {
+						selected := m.Filtered[m.SelectedIndex]
+						ctx := &cmdContext{model: m}
+						action := commands.Delete(m.Manager, selected)
+						action(ctx)
+						m.ConfirmComponent = nil
+						return m, ctx.cmd
+					}
+					m.ConfirmComponent = nil
+				}
+			}
+		}
+		return m, nil
+
 	case ModeHelp:
 		if keyMsg, ok := msg.(tea.KeyMsg); ok {
 			switch keyMsg.String() {
@@ -162,11 +197,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			case "d":
-				// Safe confirmation entry using command bar pre-population
-				m.Mode = ModeCommand
-				m.CommandInput.SetValue("delete")
-				m.CommandInput.Focus()
-				return m, textinput.Blink
+				if len(m.Filtered) > 0 {
+					selected := m.Filtered[m.SelectedIndex]
+					m.ConfirmComponent = components.NewConfirm(
+						"Delete Connection?",
+						fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
+					)
+					m.Mode = ModeConfirm
+					return m, nil
+				}
 
 			case keyEnter:
 				if len(m.Filtered) > 0 {
