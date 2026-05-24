@@ -89,6 +89,9 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			)
 			return m, m.ActiveComponent.Init()
 		}
+	case "?", ",":
+		m.ActiveComponent = components.NewHelp(helpOptions, ColorPrimary, ColorMuted)
+		return m, m.ActiveComponent.Init()
 
 	case keyEnter:
 		if len(m.Filtered) > 0 {
