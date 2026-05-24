@@ -46,6 +46,19 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "l", "right":
 		m.navigateTabs(1)
 
+	case "p":
+		if len(m.Filtered) > 0 {
+			selected := m.Filtered[m.SelectedIndex]
+			if m.PingResults == nil {
+				m.PingResults = make(map[string]*PingResult)
+			}
+			m.PingResults[selected.Alias] = &PingResult{Pending: true}
+			return m, m.PingHost(selected)
+		}
+
+	case "P":
+		return m, m.PingAll()
+
 	case "/":
 		m.Mode = ModeSearch
 		m.SearchInput.SetValue("")

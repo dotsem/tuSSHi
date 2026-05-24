@@ -29,7 +29,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.AlertText = "SSH session disconnected."
 		}
 		m.Reload()
-		return m, tea.ClearScreen
+		return m, tea.Batch(tea.ClearScreen, m.PingAll())
+
+	case PingResultMsg:
+		if m.PingResults == nil {
+			m.PingResults = make(map[string]*PingResult)
+		}
+		m.PingResults[msg.Alias] = &PingResult{
+			Online:  msg.Online,
+			Latency: msg.Latency,
+			Pending: false,
+		}
+		return m, nil
 
 	case tea.KeyMsg:
 		// Reset temporary notifications on keypress
@@ -43,6 +54,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		activeCmd, done := m.ActiveComponent.Update(msg)
 		if done {
 			m.ActiveComponent = nil
+			return m, tea.Batch(activeCmd, m.PingAll())
 		}
 		return m, activeCmd
 	}

@@ -57,6 +57,8 @@ type Model struct {
 
 	// Active overlay component
 	ActiveComponent components.Component
+
+	PingResults map[string]*PingResult
 }
 
 // Init initializes the Bubble Tea application state and returns initial commands.
@@ -64,6 +66,7 @@ func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.SetWindowTitle("tuSSHi"),
 		textinput.Blink,
+		m.PingAll(),
 	)
 }
 
@@ -82,6 +85,7 @@ func NewModel(mgr *config.Manager) *Model {
 		Mode:         ModeNormal,
 		SearchInput:  searchIn,
 		CommandInput: cmdIn,
+		PingResults:  make(map[string]*PingResult),
 	}
 	m.Reload()
 	return m
@@ -94,6 +98,19 @@ func (m *Model) Reload() {
 		return
 	}
 	m.Hosts = m.Manager.GetHosts()
+
+	// prune ping results for hosts that no longer exist
+	if m.PingResults != nil {
+		activeAliases := make(map[string]bool)
+		for _, h := range m.Hosts {
+			activeAliases[h.Alias] = true
+		}
+		for alias := range m.PingResults {
+			if !activeAliases[alias] {
+				delete(m.PingResults, alias)
+			}
+		}
+	}
 
 	m.Tabs = []string{tabAll}
 	for _, f := range m.Manager.FileOrder {
