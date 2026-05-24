@@ -15,7 +15,8 @@ builds:
     goarch:
       - amd64
       - arm64
-    main: ./cmd/main.go
+    main: ./cmd/tusshi/main.go
+    binary: tusshi
 
 archives:
   - format: tar.gz
