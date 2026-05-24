@@ -1,6 +1,7 @@
 package components_test
 
 import (
+	"strings"
 	"testing"
 
 	"tusshi/pkg/tui/components"
@@ -11,10 +12,15 @@ import (
 
 func TestConfirmComponent(t *testing.T) {
 	confirmedCalled := false
-	c := components.NewConfirm("Test Confirm", "Are you sure?", theme.Mock, func() tea.Cmd {
-		confirmedCalled = true
-		return nil
-	})
+	c := &components.Confirm{
+		Title:   "Test Confirm",
+		Message: "Are you sure?",
+		Theme:   theme.Mock,
+		OnConfirm: func() tea.Cmd {
+			confirmedCalled = true
+			return nil
+		},
+	}
 
 	if c.Title != "Test Confirm" {
 		t.Errorf("expected Title 'Test Confirm', got %q", c.Title)
@@ -69,16 +75,22 @@ func TestConfirmComponent(t *testing.T) {
 }
 
 func TestConfirmCustomLabels(t *testing.T) {
-	c := components.NewConfirm("Test Title", "Test Message", theme.Mock, func() tea.Cmd { return nil })
-	if c.YesStr != " Yes " || c.NoStr != " No  " {
-		t.Errorf("expected default labels, got YesStr=%q, NoStr=%q", c.YesStr, c.NoStr)
+	c := &components.Confirm{
+		Theme: theme.Mock,
+	}
+
+	// Verify defaults render when fields are left empty
+	viewEmpty := c.View(40)
+	if !strings.Contains(viewEmpty, " Yes ") || !strings.Contains(viewEmpty, " No  ") {
+		t.Error("expected view to render default button labels when empty")
 	}
 
 	// Apply Option 2 (direct mutation)
 	c.YesStr = " Delete "
 	c.NoStr = " Cancel "
 
-	if c.YesStr != " Delete " || c.NoStr != " Cancel " {
-		t.Errorf("expected mutated labels, got YesStr=%q, NoStr=%q", c.YesStr, c.NoStr)
+	viewCustom := c.View(40)
+	if !strings.Contains(viewCustom, " Delete ") || !strings.Contains(viewCustom, " Cancel ") {
+		t.Error("expected view to render custom button labels after mutation")
 	}
 }

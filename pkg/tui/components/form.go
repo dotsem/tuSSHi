@@ -11,14 +11,6 @@ type Form struct {
 	OnSubmit func()
 }
 
-// NewForm creates a new form component.
-func NewForm(f *huh.Form, onSubmit func()) *Form {
-	return &Form{
-		Form:     f,
-		OnSubmit: onSubmit,
-	}
-}
-
 // Init initializes the huh form.
 func (f *Form) Init() tea.Cmd {
 	return f.Form.Init()

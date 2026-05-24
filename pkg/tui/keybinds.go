@@ -61,39 +61,48 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case "a":
 		m.FormAction = actionAdd
-		m.ActiveComponent = components.NewForm(m.BuildHostForm(m.ActiveTab), func() {
-			m.executeFormSubmit()
-		})
+		m.ActiveComponent = &components.Form{
+			Form: m.BuildHostForm(m.ActiveTab),
+			OnSubmit: func() {
+				m.executeFormSubmit()
+			},
+		}
 		return m, m.ActiveComponent.Init()
 
 	case "e":
 		if len(m.Filtered) > 0 {
 			m.FormAction = actionEdit
-			m.ActiveComponent = components.NewForm(m.BuildHostForm(m.ActiveTab), func() {
-				m.executeFormSubmit()
-			})
+			m.ActiveComponent = &components.Form{
+				Form: m.BuildHostForm(m.ActiveTab),
+				OnSubmit: func() {
+					m.executeFormSubmit()
+				},
+			}
 			return m, m.ActiveComponent.Init()
 		}
 
 	case "d":
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
-			m.ActiveComponent = components.NewConfirm(
-				"Delete Connection?",
-				fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
-				theme.Global,
-				func() tea.Cmd {
+			m.ActiveComponent = &components.Confirm{
+				Title:       "Delete Connection?",
+				Message:     fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
+				Theme:       theme.Global,
+				Destructive: true,
+				OnConfirm: func() tea.Cmd {
 					ctx := &cmdContext{model: m}
 					action := commands.Delete(m.Manager, selected)
 					action(ctx)
 					return ctx.cmd
 				},
-			)
-			m.ActiveComponent.(*components.Confirm).Destructive = true
+			}
 			return m, m.ActiveComponent.Init()
 		}
 	case "?", ",":
-		m.ActiveComponent = components.NewHelp(helpOptions, theme.Global)
+		m.ActiveComponent = &components.Help{
+			Options: helpOptions,
+			Theme:   theme.Global,
+		}
 		return m, m.ActiveComponent.Init()
 
 	case keyEnter:

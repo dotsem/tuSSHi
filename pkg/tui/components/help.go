@@ -21,14 +21,6 @@ type Help struct {
 	Theme   theme.Theme
 }
 
-// NewHelp creates a new help dialog component.
-func NewHelp(options []HelpOption, theme theme.Theme) *Help {
-	return &Help{
-		Options: options,
-		Theme:   theme,
-	}
-}
-
 // Init initializes the help dialog.
 func (h *Help) Init() tea.Cmd {
 	return nil

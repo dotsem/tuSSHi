@@ -20,18 +20,18 @@ type Confirm struct {
 	Destructive bool
 }
 
-// NewConfirm creates a new confirmation component.
-func NewConfirm(title, message string, theme theme.Theme, onConfirm func() tea.Cmd) *Confirm {
-	return &Confirm{
-		Title:       title,
-		Message:     message,
-		YesSelected: false,
-		Theme:       theme,
-		OnConfirm:   onConfirm,
-		YesStr:      " Yes ",
-		NoStr:       " No  ",
-		Destructive: false,
+func (c *Confirm) getYesStr() string {
+	if c.YesStr == "" {
+		return " Yes "
 	}
+	return c.YesStr
+}
+
+func (c *Confirm) getNoStr() string {
+	if c.NoStr == "" {
+		return " No  "
+	}
+	return c.NoStr
 }
 
 // Init initializes the confirmation dialog.
@@ -94,19 +94,18 @@ func (c *Confirm) View(width int) string {
 	var yesBtn, noBtn string
 	if c.YesSelected {
 		if c.Destructive {
-			yesBtn = btnDestructive.Render(c.YesStr)
+			yesBtn = btnDestructive.Render(c.getYesStr())
 		} else {
-			yesBtn = btnActive.Render(c.YesStr)
+			yesBtn = btnActive.Render(c.getYesStr())
 		}
-		noBtn = btnInactive.Render(c.NoStr)
+		noBtn = btnInactive.Render(c.getNoStr())
 	} else {
 		if c.Destructive {
-			noBtn = btnDestructive.Render(c.NoStr)
+			noBtn = btnDestructive.Render(c.getNoStr())
 		} else {
-			noBtn = btnActive.Render(c.NoStr)
+			noBtn = btnActive.Render(c.getNoStr())
 		}
-		yesBtn = btnInactive.Render(c.YesStr)
-		noBtn = btnActive.Render(c.NoStr)
+		yesBtn = btnInactive.Render(c.getYesStr())
 	}
 
 	buttonsRow := lipgloss.JoinHorizontal(lipgloss.Center,

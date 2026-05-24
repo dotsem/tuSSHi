@@ -61,15 +61,21 @@ func (c *cmdContext) Quit() {
 // OpenHelp sets the active component to help overlay.
 
 func (c *cmdContext) OpenHelp() {
-	c.model.ActiveComponent = components.NewHelp(helpOptions, theme.Global)
+	c.model.ActiveComponent = &components.Help{
+		Options: helpOptions,
+		Theme:   theme.Global,
+	}
 }
 
 // OpenForm sets up and opens the add/edit interactive form.
 func (c *cmdContext) OpenForm(action string) {
 	c.model.FormAction = action
-	c.model.ActiveComponent = components.NewForm(c.model.BuildHostForm(c.model.ActiveTab), func() {
-		c.model.executeFormSubmit()
-	})
+	c.model.ActiveComponent = &components.Form{
+		Form: c.model.BuildHostForm(c.model.ActiveTab),
+		OnSubmit: func() {
+			c.model.executeFormSubmit()
+		},
+	}
 	c.cmd = c.model.ActiveComponent.Init()
 }
 
@@ -121,18 +127,18 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 	case matchesCommand(cmd, deleteCmd):
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
-			m.ActiveComponent = components.NewConfirm(
-				"Delete Connection?",
-				fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
-				theme.Global,
-				func() tea.Cmd {
+			m.ActiveComponent = &components.Confirm{
+				Title:       "Delete Connection?",
+				Message:     fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
+				Theme:       theme.Global,
+				Destructive: true,
+				OnConfirm: func() tea.Cmd {
 					ctx := &cmdContext{model: m}
 					action := commands.Delete(m.Manager, selected)
 					action(ctx)
 					return ctx.cmd
 				},
-			)
-			m.ActiveComponent.(*components.Confirm).Destructive = true
+			}
 			return m, nil
 		} else {
 			return m, nil
