@@ -1,3 +1,4 @@
+// Package commands defines the interactive command execution handlers for the TUSSHI TUI.
 package commands
 
 import (
@@ -7,6 +8,8 @@ import (
 
 	"tusshi/pkg/config"
 )
+
+const tabAll = "All"
 
 // AddConfig triggers creation of a new configuration file.
 func AddConfig(mgr *config.Manager, parts []string) func(Context) {
@@ -40,18 +43,19 @@ func RenameConfig(mgr *config.Manager, parts []string) func(Context) {
 		activeTab := ctx.GetActiveTab()
 
 		var oldName, newName string
-		if len(parts) == 2 {
-			if activeTab == "All" {
+		switch {
+		case len(parts) == 2:
+			if activeTab == tabAll {
 				ctx.SetError("Cannot rename from 'All' tab. Usage: :rename-config <old-name> <new-name>")
 				return
 			}
 			oldName = activeTab
 			newName = parts[1]
-		} else if len(parts) >= 3 {
+		case len(parts) >= 3:
 			oldName = parts[1]
 			newName = parts[2]
-		} else {
-			if activeTab == "All" {
+		default:
+			if activeTab == tabAll {
 				ctx.SetError("Usage: :rename-config <old-name> <new-name>")
 			} else {
 				ctx.SetError("Usage: :rename-config <new-name>")
@@ -100,7 +104,7 @@ func DeleteConfig(mgr *config.Manager, parts []string) func(Context) {
 		if len(parts) >= 2 {
 			targetName = parts[1]
 		} else {
-			if activeTab == "All" {
+			if activeTab == tabAll {
 				ctx.SetError("Usage: :delete-config <filename> (or switch to a tab and run :delete-config)")
 				return
 			}
@@ -125,7 +129,7 @@ func DeleteConfig(mgr *config.Manager, parts []string) func(Context) {
 		} else {
 			ctx.SetAlert(fmt.Sprintf("Deleted config file %q.", filepath.Base(targetPath)))
 			if activeTab == targetPath {
-				ctx.SetActiveTab("All")
+				ctx.SetActiveTab(tabAll)
 			}
 		}
 		ctx.Reload()

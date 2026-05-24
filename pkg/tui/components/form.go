@@ -18,7 +18,7 @@ func (f *Form) Init() tea.Cmd {
 
 // Update delegates key inputs to Huh and triggers submission.
 func (f *Form) Update(msg tea.Msg) (tea.Cmd, bool) {
-	if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == "esc" {
+	if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == keyEsc {
 		return nil, true
 	}
 
@@ -39,6 +39,6 @@ func (f *Form) Update(msg tea.Msg) (tea.Cmd, bool) {
 }
 
 // View renders the huh form.
-func (f *Form) View(width int) string {
+func (f *Form) View(_ int) string {
 	return f.Form.View()
 }

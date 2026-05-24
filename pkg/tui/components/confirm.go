@@ -52,7 +52,7 @@ func (c *Confirm) Update(msg tea.Msg) (tea.Cmd, bool) {
 				return c.OnConfirm(), true
 			}
 			return nil, true
-		case "esc", "q":
+		case keyEsc, "q":
 			return nil, true
 		}
 	}

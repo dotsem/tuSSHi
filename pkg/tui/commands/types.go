@@ -11,4 +11,3 @@ type Context interface {
 	GetActiveTab() string
 	SetActiveTab(tab string)
 }
-

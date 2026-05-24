@@ -220,6 +220,7 @@ func TestManagerConfigFileCRUD(t *testing.T) {
 	assert.Contains(t, mgr.FileOrder, subPath)
 
 	// Check if Include directive is added in primary
+	// #nosec G304
 	primaryContent, err := os.ReadFile(primaryPath)
 	assert.NoError(t, err)
 	relSub, err := filepath.Rel(filepath.Dir(primaryPath), subPath)
@@ -236,6 +237,7 @@ func TestManagerConfigFileCRUD(t *testing.T) {
 	assert.NotContains(t, mgr.FileOrder, subPath)
 
 	// Check if Include is updated in primary
+	// #nosec G304
 	primaryContent2, err := os.ReadFile(primaryPath)
 	assert.NoError(t, err)
 	relRenamed, err := filepath.Rel(filepath.Dir(primaryPath), renamedPath)
@@ -266,8 +268,8 @@ func TestManagerConfigFileCRUD(t *testing.T) {
 	assert.NotContains(t, mgr.FileOrder, renamedPath)
 
 	// Check if Include is removed from primary
+	// #nosec G304
 	primaryContent3, err := os.ReadFile(primaryPath)
 	assert.NoError(t, err)
 	assert.NotContains(t, string(primaryContent3), "Include "+relRenamed)
 }
-

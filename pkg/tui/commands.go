@@ -139,10 +139,8 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 					return ctx.cmd
 				},
 			}
-			return m, nil
-		} else {
-			return m, nil
 		}
+		return m, nil
 
 	case matchesCommand(cmd, moveCmd):
 		if len(m.Filtered) > 0 {

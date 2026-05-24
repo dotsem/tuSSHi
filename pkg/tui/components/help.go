@@ -30,7 +30,7 @@ func (h *Help) Init() tea.Cmd {
 func (h *Help) Update(msg tea.Msg) (tea.Cmd, bool) {
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
 		switch keyMsg.String() {
-		case "esc", "q", "enter":
+		case keyEsc, "q", "enter":
 			return nil, true
 		}
 	}
