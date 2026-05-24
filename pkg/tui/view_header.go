@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"tusshi/pkg/tui/style"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -10,14 +12,14 @@ func (m *Model) renderHeader() string {
 	for _, t := range m.Tabs {
 		label := GetTabLabel(t)
 		if t == m.ActiveTab {
-			tabs = append(tabs, StyleTabActive.Render(label))
+			tabs = append(tabs, style.TabActive.Render(label))
 		} else {
-			tabs = append(tabs, StyleTabInactive.Render(label))
+			tabs = append(tabs, style.TabInactive.Render(label))
 		}
 	}
 
 	tabsRow := lipgloss.JoinHorizontal(lipgloss.Left, tabs...)
-	title := StyleTitle.Render(" tuSSHi ")
+	title := style.Title.Render(" tuSSHi ")
 	headerTop := lipgloss.JoinHorizontal(lipgloss.Left, title, "── ", tabsRow)
 
 	var searchBar string
@@ -26,9 +28,9 @@ func (m *Model) renderHeader() string {
 	} else {
 		val := m.SearchInput.Value()
 		if val != "" {
-			searchBar = StyleNormalPrompt.Render("/ ") + val
+			searchBar = style.NormalPrompt.Render("/ ") + val
 		} else {
-			searchBar = StyleFooter.Render("/ type to search...")
+			searchBar = style.Footer.Render("/ type to search...")
 		}
 	}
 

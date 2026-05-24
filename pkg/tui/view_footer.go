@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"tusshi/pkg/tui/style"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -8,9 +10,9 @@ import (
 func (m *Model) renderFooter(width int) string {
 	var alertBar string
 	if m.ErrorText != "" {
-		alertBar = StyleError.Render("ERROR: " + m.ErrorText)
+		alertBar = style.Error.Render("ERROR: " + m.ErrorText)
 	} else if m.AlertText != "" {
-		alertBar = StyleAlert.Render("SUCCESS: " + m.AlertText)
+		alertBar = style.Alert.Render("SUCCESS: " + m.AlertText)
 	}
 
 	var cmdBar string
@@ -18,9 +20,9 @@ func (m *Model) renderFooter(width int) string {
 	case ModeCommand:
 		cmdBar = m.CommandInput.View()
 	case ModeSearch:
-		cmdBar = StyleNormalPrompt.Render("[Search Mode] ") + getSearchShortcuts(width)
+		cmdBar = style.NormalPrompt.Render("[Search Mode] ") + getSearchShortcuts(width)
 	default:
-		cmdBar = StyleFooter.Render(getShortcuts(width))
+		cmdBar = style.Footer.Render(getShortcuts(width))
 	}
 
 	if alertBar != "" {

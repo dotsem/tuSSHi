@@ -6,6 +6,7 @@ import (
 	"tusshi/pkg/ssh"
 	"tusshi/pkg/tui/commands"
 	"tusshi/pkg/tui/components"
+	"tusshi/pkg/tui/theme"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -80,6 +81,7 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.ActiveComponent = components.NewConfirm(
 				"Delete Connection?",
 				fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
+				theme.Global,
 				func() tea.Cmd {
 					ctx := &cmdContext{model: m}
 					action := commands.Delete(m.Manager, selected)
@@ -87,10 +89,11 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 					return ctx.cmd
 				},
 			)
+			m.ActiveComponent.(*components.Confirm).Destructive = true
 			return m, m.ActiveComponent.Init()
 		}
 	case "?", ",":
-		m.ActiveComponent = components.NewHelp(helpOptions, ColorPrimary, ColorMuted)
+		m.ActiveComponent = components.NewHelp(helpOptions, theme.Global)
 		return m, m.ActiveComponent.Init()
 
 	case keyEnter:

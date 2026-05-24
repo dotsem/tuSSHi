@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"strings"
+	"tusshi/pkg/tui/style"
 )
 
 // renderTable draws the formatted column grid displaying active connections.
@@ -69,8 +70,8 @@ func (m *Model) renderTable(width, maxHeight int) string {
 		)
 	}
 
-	renderedHeader := StyleTableHeader.Render(headerRow)
-	renderedDivider := StyleTableHeader.Render(dividerRow)
+	renderedHeader := style.TableHeader.Render(headerRow)
+	renderedDivider := style.TableHeader.Render(dividerRow)
 
 	var rows []string
 	rows = append(rows, renderedHeader, renderedDivider)
@@ -125,10 +126,10 @@ func (m *Model) renderTable(width, maxHeight int) string {
 
 		if idx == m.SelectedIndex {
 			rowLine = "❯ " + rowLine[2:]
-			rows = append(rows, StyleRowActive.Render(rowLine))
+			rows = append(rows, style.RowActive.Render(rowLine))
 		} else {
 			rowLine = "  " + rowLine[2:]
-			rows = append(rows, StyleRowInactive.Render(rowLine))
+			rows = append(rows, style.RowInactive.Render(rowLine))
 		}
 	}
 

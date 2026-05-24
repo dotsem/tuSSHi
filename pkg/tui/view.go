@@ -3,6 +3,7 @@ package tui
 import (
 	"regexp"
 	"strings"
+	"tusshi/pkg/tui/style"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -35,7 +36,7 @@ func (m *Model) View() string {
 		dialogWidth := min(60, m.Width-4)
 		dialogHeight := min(20, m.Height-2)
 
-		dialogBox := StyleDialog.Width(dialogWidth).Height(dialogHeight).Render(dialogContent)
+		dialogBox := style.Dialog.Width(dialogWidth).Height(dialogHeight).Render(dialogContent)
 		dialogLines := strings.Split(dialogBox, "\n")
 
 		dialogW := lipgloss.Width(dialogBox)
@@ -58,13 +59,13 @@ func (m *Model) View() string {
 				leftPart := bgRunes[:startCol]
 				rightPart := bgRunes[startCol+dialogW:]
 
-				mutedLeft := StyleMuted.Render(string(leftPart))
-				mutedRight := StyleMuted.Render(string(rightPart))
+				mutedLeft := style.Muted.Render(string(leftPart))
+				mutedRight := style.Muted.Render(string(rightPart))
 				dialogLine := dialogLines[dialogLineIdx]
 
 				finalLines = append(finalLines, mutedLeft+dialogLine+mutedRight)
 			} else {
-				finalLines = append(finalLines, StyleMuted.Render(string(bgRunes)))
+				finalLines = append(finalLines, style.Muted.Render(string(bgRunes)))
 			}
 		}
 		bgString = strings.Join(finalLines, "\n")
@@ -85,19 +86,19 @@ func (m *Model) renderNormalView(width, height int) string {
 	bodyBoxHeight := max(height-headerBoxHeight-footerBoxHeight, 2)
 
 	headerContent := m.renderHeader()
-	headerBox := StyleHeaderBox.
+	headerBox := style.HeaderBox.
 		Width(width - 2).
 		Height(headerBoxHeight - 2).
 		Render(headerContent)
 
 	tableContent := m.renderTable(width-4, bodyBoxHeight-2)
-	bodyBox := StyleBodyBox.
+	bodyBox := style.BodyBox.
 		Width(width - 2).
 		Height(bodyBoxHeight - 2).
 		Render(tableContent)
 
 	footerContent := m.renderFooter(width - 4)
-	footerBox := StyleFooterBox.
+	footerBox := style.FooterBox.
 		Width(width - 2).
 		Height(footerBoxHeight - 2).
 		Render(footerContent)

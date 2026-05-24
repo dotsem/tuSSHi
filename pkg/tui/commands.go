@@ -7,6 +7,7 @@ import (
 
 	"tusshi/pkg/tui/commands"
 	"tusshi/pkg/tui/components"
+	"tusshi/pkg/tui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -60,7 +61,7 @@ func (c *cmdContext) Quit() {
 // OpenHelp sets the active component to help overlay.
 
 func (c *cmdContext) OpenHelp() {
-	c.model.ActiveComponent = components.NewHelp(helpOptions, ColorPrimary, ColorMuted)
+	c.model.ActiveComponent = components.NewHelp(helpOptions, theme.Global)
 }
 
 // OpenForm sets up and opens the add/edit interactive form.
@@ -123,6 +124,7 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 			m.ActiveComponent = components.NewConfirm(
 				"Delete Connection?",
 				fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
+				theme.Global,
 				func() tea.Cmd {
 					ctx := &cmdContext{model: m}
 					action := commands.Delete(m.Manager, selected)
@@ -130,6 +132,7 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 					return ctx.cmd
 				},
 			)
+			m.ActiveComponent.(*components.Confirm).Destructive = true
 			return m, nil
 		} else {
 			return m, nil

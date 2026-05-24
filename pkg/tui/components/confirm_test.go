@@ -1,14 +1,17 @@
-package components
+package components_test
 
 import (
 	"testing"
+
+	"tusshi/pkg/tui/components"
+	"tusshi/pkg/tui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func TestConfirmComponent(t *testing.T) {
 	confirmedCalled := false
-	c := NewConfirm("Test Confirm", "Are you sure?", func() tea.Cmd {
+	c := components.NewConfirm("Test Confirm", "Are you sure?", theme.Mock, func() tea.Cmd {
 		confirmedCalled = true
 		return nil
 	})
@@ -62,5 +65,20 @@ func TestConfirmComponent(t *testing.T) {
 	_, done = c.Update(tea.KeyMsg{Type: tea.KeyEsc})
 	if !done {
 		t.Error("expected done to be true after esc key press")
+	}
+}
+
+func TestConfirmCustomLabels(t *testing.T) {
+	c := components.NewConfirm("Test Title", "Test Message", theme.Mock, func() tea.Cmd { return nil })
+	if c.YesStr != " Yes " || c.NoStr != " No  " {
+		t.Errorf("expected default labels, got YesStr=%q, NoStr=%q", c.YesStr, c.NoStr)
+	}
+
+	// Apply Option 2 (direct mutation)
+	c.YesStr = " Delete "
+	c.NoStr = " Cancel "
+
+	if c.YesStr != " Delete " || c.NoStr != " Cancel " {
+		t.Errorf("expected mutated labels, got YesStr=%q, NoStr=%q", c.YesStr, c.NoStr)
 	}
 }

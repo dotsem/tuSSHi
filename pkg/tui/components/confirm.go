@@ -2,6 +2,7 @@ package components
 
 import (
 	"strings"
+	"tusshi/pkg/tui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -12,16 +13,24 @@ type Confirm struct {
 	Title       string
 	Message     string
 	YesSelected bool
+	Theme       theme.Theme
 	OnConfirm   func() tea.Cmd
+	YesStr      string
+	NoStr       string
+	Destructive bool
 }
 
 // NewConfirm creates a new confirmation component.
-func NewConfirm(title, message string, onConfirm func() tea.Cmd) *Confirm {
+func NewConfirm(title, message string, theme theme.Theme, onConfirm func() tea.Cmd) *Confirm {
 	return &Confirm{
 		Title:       title,
 		Message:     message,
 		YesSelected: false,
+		Theme:       theme,
 		OnConfirm:   onConfirm,
+		YesStr:      " Yes ",
+		NoStr:       " No  ",
+		Destructive: false,
 	}
 }
 
@@ -53,7 +62,7 @@ func (c *Confirm) Update(msg tea.Msg) (tea.Cmd, bool) {
 // View renders the confirmation modal nicely styled with Lip Gloss.
 func (c *Confirm) View(width int) string {
 	titleStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("205")).
+		Foreground(c.Theme.Primary).
 		Bold(true).
 		Align(lipgloss.Center).
 		Width(width)
@@ -63,10 +72,16 @@ func (c *Confirm) View(width int) string {
 		Align(lipgloss.Center).
 		Width(width)
 
-	divider := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render(strings.Repeat("─", width))
+	divider := lipgloss.NewStyle().Foreground(c.Theme.Muted).Render(strings.Repeat("─", width))
 
 	btnActive := lipgloss.NewStyle().
-		Background(lipgloss.Color("205")).
+		Background(c.Theme.Primary).
+		Foreground(lipgloss.Color("0")).
+		Bold(true).
+		Padding(0, 3)
+
+	btnDestructive := lipgloss.NewStyle().
+		Background(c.Theme.Error).
 		Foreground(lipgloss.Color("0")).
 		Bold(true).
 		Padding(0, 3)
@@ -78,11 +93,20 @@ func (c *Confirm) View(width int) string {
 
 	var yesBtn, noBtn string
 	if c.YesSelected {
-		yesBtn = btnActive.Render(" Yes ")
-		noBtn = btnInactive.Render(" No  ")
+		if c.Destructive {
+			yesBtn = btnDestructive.Render(c.YesStr)
+		} else {
+			yesBtn = btnActive.Render(c.YesStr)
+		}
+		noBtn = btnInactive.Render(c.NoStr)
 	} else {
-		yesBtn = btnInactive.Render(" Yes ")
-		noBtn = btnActive.Render(" No  ")
+		if c.Destructive {
+			noBtn = btnDestructive.Render(c.NoStr)
+		} else {
+			noBtn = btnActive.Render(c.NoStr)
+		}
+		yesBtn = btnInactive.Render(c.YesStr)
+		noBtn = btnActive.Render(c.NoStr)
 	}
 
 	buttonsRow := lipgloss.JoinHorizontal(lipgloss.Center,
@@ -100,7 +124,7 @@ func (c *Confirm) View(width int) string {
 		"",
 		buttonsStyle.Render(buttonsRow),
 		"",
-		lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Align(lipgloss.Center).Width(width).Render("← / → to switch • Enter to select • Esc to cancel"),
+		lipgloss.NewStyle().Foreground(c.Theme.Muted).Align(lipgloss.Center).Width(width).Render("← / → to switch • Enter to select • Esc to cancel"),
 	}
 
 	return strings.Join(rows, "\n")

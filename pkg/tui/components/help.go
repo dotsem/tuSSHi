@@ -3,6 +3,7 @@ package components
 import (
 	"fmt"
 	"strings"
+	"tusshi/pkg/tui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -16,17 +17,15 @@ type HelpOption struct {
 
 // Help represents the interactive help dialog component.
 type Help struct {
-	Options      []HelpOption
-	ColorPrimary lipgloss.TerminalColor
-	ColorMuted   lipgloss.TerminalColor
+	Options []HelpOption
+	Theme   theme.Theme
 }
 
 // NewHelp creates a new help dialog component.
-func NewHelp(options []HelpOption, primary, muted lipgloss.TerminalColor) *Help {
+func NewHelp(options []HelpOption, theme theme.Theme) *Help {
 	return &Help{
-		Options:      options,
-		ColorPrimary: primary,
-		ColorMuted:   muted,
+		Options: options,
+		Theme:   theme,
 	}
 }
 
@@ -49,15 +48,15 @@ func (h *Help) Update(msg tea.Msg) (tea.Cmd, bool) {
 // View renders the help dialog content.
 func (h *Help) View(width int) string {
 	titleStyle := lipgloss.NewStyle().
-		Foreground(h.ColorPrimary).
+		Foreground(h.Theme.Primary).
 		Bold(true).
 		Align(lipgloss.Center).
 		Width(width)
 
 	header := titleStyle.Render("Available Commands")
-	divider := lipgloss.NewStyle().Foreground(h.ColorMuted).Render(strings.Repeat("─", width))
+	divider := lipgloss.NewStyle().Foreground(h.Theme.Muted).Render(strings.Repeat("─", width))
 
-	cmdStyle := lipgloss.NewStyle().Foreground(h.ColorPrimary).Bold(true)
+	cmdStyle := lipgloss.NewStyle().Foreground(h.Theme.Primary).Bold(true)
 	descStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
 
 	var rows []string
@@ -65,7 +64,7 @@ func (h *Help) View(width int) string {
 	for _, opt := range h.Options {
 		rows = append(rows, fmt.Sprintf("  %-22s %s", cmdStyle.Render(opt.Shortcut), descStyle.Render(opt.Description)))
 	}
-	rows = append(rows, "", lipgloss.NewStyle().Foreground(h.ColorMuted).Align(lipgloss.Center).Width(width).Render("Press Esc to close"))
+	rows = append(rows, "", lipgloss.NewStyle().Foreground(h.Theme.Muted).Align(lipgloss.Center).Width(width).Render("Press Esc to close"))
 
 	return strings.Join(rows, "\n")
 }
