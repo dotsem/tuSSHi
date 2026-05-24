@@ -64,7 +64,7 @@ Host 10.200.1.46
 	assert.Equal(t, "~/.ssh/keys/work_rsa", prodHost.IdentityFile)
 	// Verify prodHost inherited port 2222 from wildcard Host *
 	assert.Equal(t, "2222", prodHost.ResolvedProperties["Port"])
-	assert.Equal(t, "yes", prodHost.ResolvedProperties["ForwardAgent"])
+	assert.Equal(t, "yes", prodHost.ResolvedProperties[keyForwardAgent])
 
 	// Verify dbHost does not have alias (its alias is the IP itself)
 	assert.NotNil(t, dbHost)
@@ -72,7 +72,7 @@ Host 10.200.1.46
 	// dbHost should inherit User, Port, and ForwardAgent from wildcard
 	assert.Equal(t, "default_user", dbHost.User)
 	assert.Equal(t, "2222", dbHost.Port)
-	assert.Equal(t, "yes", dbHost.ResolvedProperties["ForwardAgent"])
+	assert.Equal(t, "yes", dbHost.ResolvedProperties[keyForwardAgent])
 }
 
 // TestManagerIncludes tests glob inclusion and recursive parsing.
@@ -130,7 +130,7 @@ Host my-host
 		User:  "admin",
 		Port:  "22",
 		Properties: map[string]string{
-			"ForwardAgent": "yes",
+			keyForwardAgent: "yes",
 		},
 	}
 	err = mgr.AddHost(primaryPath, newHost)
@@ -153,7 +153,7 @@ Host my-host
 	assert.Equal(t, "192.168.1.10", addedHost.Name)
 	assert.Equal(t, "admin", addedHost.User)
 	assert.Equal(t, "22", addedHost.Port)
-	assert.Equal(t, "yes", addedHost.Properties["ForwardAgent"])
+	assert.Equal(t, "yes", addedHost.Properties[keyForwardAgent])
 
 	// 2. Update host
 	updatedHost := &Host{
@@ -162,8 +162,8 @@ Host my-host
 		User:  "root",
 		Port:  "222",
 		Properties: map[string]string{
-			"ForwardAgent": "no",
-			"ProxyJump":    "jump-box",
+			keyForwardAgent: "no",
+			"ProxyJump":     "jump-box",
 		},
 	}
 	err = mgr2.UpdateHost("added-host", updatedHost)
@@ -186,7 +186,7 @@ Host my-host
 	assert.Equal(t, "192.168.1.15", foundUpdated.Name)
 	assert.Equal(t, "root", foundUpdated.User)
 	assert.Equal(t, "222", foundUpdated.Port)
-	assert.Equal(t, "no", foundUpdated.Properties["ForwardAgent"])
+	assert.Equal(t, "no", foundUpdated.Properties[keyForwardAgent])
 	assert.Equal(t, "jump-box", foundUpdated.Properties["ProxyJump"])
 
 	// 3. Delete host

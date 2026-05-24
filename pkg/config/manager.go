@@ -62,7 +62,7 @@ func (m *Manager) GetHosts() []*Host {
 		for _, astHost := range cfg.Hosts {
 			// Skip the implicit default "Host *" block added by the parser
 			val := reflect.ValueOf(astHost)
-			if val.Kind() == reflect.Ptr && !val.IsNil() {
+			if val.Kind() == reflect.Pointer && !val.IsNil() {
 				elem := val.Elem()
 				implicitField := elem.FieldByName("implicit")
 				if implicitField.IsValid() && implicitField.Kind() == reflect.Bool && implicitField.Bool() {
@@ -106,7 +106,7 @@ func (m *Manager) GetHosts() []*Host {
 
 				// Inject inherited properties from matching wildcard blocks.
 				if !isWildcard && globalConfig != nil {
-					for _, key := range []string{"HostName", "User", "Port", "IdentityFile", "ForwardAgent", "ProxyJump"} {
+					for _, key := range []string{keyHostName, keyUser, keyPort, keyIdentityFile, keyForwardAgent, keyProxyJump} {
 						if _, explicit := h.Properties[key]; !explicit {
 							if resolvedVal, err := globalConfig.Get(alias, key); err == nil && resolvedVal != "" {
 								h.ResolvedProperties[key] = resolvedVal
@@ -116,17 +116,17 @@ func (m *Manager) GetHosts() []*Host {
 				}
 
 				// Update resolved shortcuts.
-				if h.Name == "" && h.ResolvedProperties["HostName"] != "" {
-					h.Name = h.ResolvedProperties["HostName"]
+				if h.Name == "" && h.ResolvedProperties[keyHostName] != "" {
+					h.Name = h.ResolvedProperties[keyHostName]
 				}
-				if h.User == "" && h.ResolvedProperties["User"] != "" {
-					h.User = h.ResolvedProperties["User"]
+				if h.User == "" && h.ResolvedProperties[keyUser] != "" {
+					h.User = h.ResolvedProperties[keyUser]
 				}
-				if h.Port == "" && h.ResolvedProperties["Port"] != "" {
-					h.Port = h.ResolvedProperties["Port"]
+				if h.Port == "" && h.ResolvedProperties[keyPort] != "" {
+					h.Port = h.ResolvedProperties[keyPort]
 				}
-				if h.IdentityFile == "" && h.ResolvedProperties["IdentityFile"] != "" {
-					h.IdentityFile = h.ResolvedProperties["IdentityFile"]
+				if h.IdentityFile == "" && h.ResolvedProperties[keyIdentityFile] != "" {
+					h.IdentityFile = h.ResolvedProperties[keyIdentityFile]
 				}
 
 				hosts = append(hosts, h)

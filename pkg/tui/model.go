@@ -23,14 +23,6 @@ const (
 	ModeCommand
 )
 
-const (
-	actionAdd  = "add"
-	actionEdit = "edit"
-	tabAll     = "All"
-	keyEsc     = "esc"
-	keyEnter   = "enter"
-)
-
 // Model holds the state machine parameters for the Bubble Tea application loop.
 type Model struct {
 	Manager       *config.Manager

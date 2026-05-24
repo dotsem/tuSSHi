@@ -132,7 +132,7 @@ func (m *Manager) DeleteConfigFile(targetPath string) error {
 	for _, astHost := range cfg.Hosts {
 		val := reflect.ValueOf(astHost)
 		isImplicit := false
-		if val.Kind() == reflect.Ptr && !val.IsNil() {
+		if val.Kind() == reflect.Pointer && !val.IsNil() {
 			elem := val.Elem()
 			implicitField := elem.FieldByName("implicit")
 			if implicitField.IsValid() && implicitField.Kind() == reflect.Bool && implicitField.Bool() {

@@ -99,7 +99,7 @@ func (m *Manager) UpdateHost(originalAlias string, h *Host) error {
 	for _, astHost := range decoded.Hosts {
 		val := reflect.ValueOf(astHost)
 		isImplicit := false
-		if val.Kind() == reflect.Ptr && !val.IsNil() {
+		if val.Kind() == reflect.Pointer && !val.IsNil() {
 			elem := val.Elem()
 			implicitField := elem.FieldByName("implicit")
 			if implicitField.IsValid() && implicitField.Kind() == reflect.Bool && implicitField.Bool() {
@@ -239,20 +239,20 @@ func buildHostString(h *Host) string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "Host %s\n", h.Alias)
 	if h.Name != "" {
-		fmt.Fprintf(&sb, "    HostName %s\n", h.Name)
+		fmt.Fprintf(&sb, "    %s %s\n", keyHostName, h.Name)
 	}
 	if h.User != "" {
-		fmt.Fprintf(&sb, "    User %s\n", h.User)
+		fmt.Fprintf(&sb, "    %s %s\n", keyUser, h.User)
 	}
 	if h.Port != "" {
-		fmt.Fprintf(&sb, "    Port %s\n", h.Port)
+		fmt.Fprintf(&sb, "    %s %s\n", keyPort, h.Port)
 	}
 	if h.IdentityFile != "" {
-		fmt.Fprintf(&sb, "    IdentityFile %s\n", h.IdentityFile)
+		fmt.Fprintf(&sb, "    %s %s\n", keyIdentityFile, h.IdentityFile)
 	}
 
 	for k, v := range h.Properties {
-		if k != "HostName" && k != "User" && k != "Port" && k != "IdentityFile" && v != "" {
+		if k != keyHostName && k != keyUser && k != keyPort && k != keyIdentityFile && v != "" {
 			fmt.Fprintf(&sb, "    %s %s\n", k, v)
 		}
 	}
