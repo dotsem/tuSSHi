@@ -17,7 +17,7 @@ const (
 	editCmd         = "e, edit"
 	deleteCmd       = "d, del, delete, rm"
 	moveCmd         = "m, move, mv"
-	helpCmd         = "h, help"
+	helpCmd         = "h, help, ?"
 	addConfigCmd    = "add-config, config-add, new-config"
 	renameConfigCmd = "rename-config, config-rename, mvconfig, mvconf"
 	deleteConfigCmd = "delete-config, config-delete, rmconfig, rmconf"
