@@ -13,14 +13,14 @@ import (
 
 const (
 	quitCmd         = "q, quit"
-	newCmd          = "new"
+	newCmd          = "n, new"
 	editCmd         = "e, edit"
-	deleteCmd       = "d, del, delete, rm"
-	moveCmd         = "m, move, mv"
+	deleteCmd       = "d, rm"
+	moveCmd         = "m, mv"
 	helpCmd         = "h, help, ?"
-	addConfigCmd    = "add-config, config-add, new-config"
-	renameConfigCmd = "rename-config, config-rename, mvconfig, mvconf"
-	deleteConfigCmd = "delete-config, config-delete, rmconfig, rmconf"
+	addConfigCmd    = "addconf, add-config"
+	renameConfigCmd = "mvconf, rename-config"
+	deleteConfigCmd = "rmconf, delete-config"
 )
 
 // helpOptions centralizes all interactive command shortcuts and their help text
