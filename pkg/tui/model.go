@@ -9,7 +9,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/huh"
 )
 
 // Mode represents the current keyboard input navigation focus state.
@@ -22,12 +21,6 @@ const (
 	ModeSearch
 	// ModeCommand indicates bottom-bar colon command input focus.
 	ModeCommand
-	// ModeForm indicates active interactive CRUD form focus.
-	ModeForm
-	// ModeHelp indicates interactive help dialog focus.
-	ModeHelp
-	// ModeConfirm indicates active confirmation dialog focus.
-	ModeConfirm
 )
 
 const (
@@ -58,8 +51,7 @@ type Model struct {
 	Width  int
 	Height int
 
-	// Active forms
-	ActiveForm        *huh.Form
+	// Active forms state
 	FormHost          *config.Host
 	FormOriginalAlias string
 	FormAction        string // "add" or "edit"
@@ -71,8 +63,8 @@ type Model struct {
 	AlertText string
 	ErrorText string
 
-	// Reusable components
-	ConfirmComponent *components.Confirm
+	// Active overlay component
+	ActiveComponent components.Component
 }
 
 // Init initializes the Bubble Tea application state and returns initial commands.

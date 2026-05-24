@@ -1,9 +1,9 @@
-// Package components provides reusable TUI components.
 package components
 
 import (
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -11,16 +11,43 @@ import (
 type Confirm struct {
 	Title       string
 	Message     string
-	YesSelected bool // true if yes is focused, false if no is focused
+	YesSelected bool
+	OnConfirm   func() tea.Cmd
 }
 
 // NewConfirm creates a new confirmation component.
-func NewConfirm(title, message string) *Confirm {
+func NewConfirm(title, message string, onConfirm func() tea.Cmd) *Confirm {
 	return &Confirm{
 		Title:       title,
 		Message:     message,
 		YesSelected: false,
+		OnConfirm:   onConfirm,
 	}
+}
+
+// Init initializes the confirmation dialog.
+func (c *Confirm) Init() tea.Cmd {
+	return nil
+}
+
+// Update processes navigation and selection events.
+func (c *Confirm) Update(msg tea.Msg) (tea.Cmd, bool) {
+	if keyMsg, ok := msg.(tea.KeyMsg); ok {
+		switch keyMsg.String() {
+		case "left", "h":
+			c.YesSelected = true
+		case "right", "l":
+			c.YesSelected = false
+		case "enter":
+			if c.YesSelected && c.OnConfirm != nil {
+				return c.OnConfirm(), true
+			}
+			return nil, true
+		case "esc", "q":
+			return nil, true
+		}
+	}
+	return nil, false
 }
 
 // View renders the confirmation modal nicely styled with Lip Gloss.
@@ -77,22 +104,4 @@ func (c *Confirm) View(width int) string {
 	}
 
 	return strings.Join(rows, "\n")
-}
-
-// Update handles keyboard navigation for the confirmation component.
-// It returns (done, confirmed).
-func (c *Confirm) Update(key string) (bool, bool) {
-	switch key {
-	case "left", "h":
-		c.YesSelected = true
-		return false, false
-	case "right", "l":
-		c.YesSelected = false
-		return false, false
-	case "enter":
-		return true, c.YesSelected
-	case "esc", "q":
-		return true, false
-	}
-	return false, false
 }

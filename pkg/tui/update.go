@@ -9,7 +9,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/huh"
 )
 
 // SSHFinishedMsg is returned by Bubble Tea when the subprocess SSH session terminates.
@@ -19,8 +18,6 @@ type SSHFinishedMsg struct {
 
 // Update processes terminal input and updates the state machine model losslessly.
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
@@ -45,72 +42,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ErrorText = ""
 	}
 
+	// Delegate to active overlay component if one is open
+	if m.ActiveComponent != nil {
+		var activeCmd tea.Cmd
+		activeCmd, done := m.ActiveComponent.Update(msg)
+		if done {
+			m.ActiveComponent = nil
+		}
+		return m, activeCmd
+	}
+
 	// Delegate based on active mode
 	switch m.Mode {
-	case ModeConfirm:
-		if keyMsg, ok := msg.(tea.KeyMsg); ok {
-			keyStr := keyMsg.String()
-			var componentKey string
-			switch keyStr {
-			case "left", "h":
-				componentKey = "left"
-			case "right", "l":
-				componentKey = "right"
-			case "enter":
-				componentKey = "enter"
-			case "esc", "q":
-				componentKey = "esc"
-			}
-
-			if componentKey != "" && m.ConfirmComponent != nil {
-				done, confirmed := m.ConfirmComponent.Update(componentKey)
-				if done {
-					m.Mode = ModeNormal
-					if confirmed && len(m.Filtered) > 0 {
-						selected := m.Filtered[m.SelectedIndex]
-						ctx := &cmdContext{model: m}
-						action := commands.Delete(m.Manager, selected)
-						action(ctx)
-						m.ConfirmComponent = nil
-						return m, ctx.cmd
-					}
-					m.ConfirmComponent = nil
-				}
-			}
-		}
-		return m, nil
-
-	case ModeHelp:
-		if keyMsg, ok := msg.(tea.KeyMsg); ok {
-			switch keyMsg.String() {
-			case keyEsc, "q", keyEnter:
-				m.Mode = ModeNormal
-				return m, nil
-			}
-		}
-		return m, nil
-
-	case ModeForm:
-		if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == keyEsc {
-			m.Mode = ModeNormal
-			m.ActiveForm = nil
-			return m, nil
-		}
-		if m.ActiveForm != nil {
-			var formModel tea.Model
-			formModel, cmd = m.ActiveForm.Update(msg)
-			m.ActiveForm = formModel.(*huh.Form)
-
-			switch m.ActiveForm.State {
-			case huh.StateCompleted:
-				m.Mode = ModeNormal
-				m.executeFormSubmit()
-			case huh.StateAborted:
-				m.Mode = ModeNormal
-				m.ActiveForm = nil
-			}
-		}
-		return m, cmd
 
 	case ModeSearch:
 		if msg, ok := msg.(tea.KeyMsg); ok {
@@ -184,27 +127,34 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case "a":
 				m.FormAction = actionAdd
-				m.ActiveForm = m.BuildHostForm(m.ActiveTab)
-				m.Mode = ModeForm
-				return m, m.ActiveForm.Init()
+				m.ActiveComponent = components.NewForm(m.BuildHostForm(m.ActiveTab), func() {
+					m.executeFormSubmit()
+				})
+				return m, m.ActiveComponent.Init()
 
 			case "e":
 				if len(m.Filtered) > 0 {
 					m.FormAction = actionEdit
-					m.ActiveForm = m.BuildHostForm(m.ActiveTab)
-					m.Mode = ModeForm
-					return m, m.ActiveForm.Init()
+					m.ActiveComponent = components.NewForm(m.BuildHostForm(m.ActiveTab), func() {
+						m.executeFormSubmit()
+					})
+					return m, m.ActiveComponent.Init()
 				}
 
 			case "d":
 				if len(m.Filtered) > 0 {
 					selected := m.Filtered[m.SelectedIndex]
-					m.ConfirmComponent = components.NewConfirm(
+					m.ActiveComponent = components.NewConfirm(
 						"Delete Connection?",
 						fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
+						func() tea.Cmd {
+							ctx := &cmdContext{model: m}
+							action := commands.Delete(m.Manager, selected)
+							action(ctx)
+							return ctx.cmd
+						},
 					)
-					m.Mode = ModeConfirm
-					return m, nil
+					return m, m.ActiveComponent.Init()
 				}
 
 			case keyEnter:

@@ -23,6 +23,19 @@ const (
 	deleteConfigCmd = "delete-config, config-delete, rmconfig, rmconf"
 )
 
+// helpOptions centralizes all interactive command shortcuts and their help text
+var helpOptions = []components.HelpOption{
+	{Shortcut: newCmd, Description: "Create a new connection"},
+	{Shortcut: editCmd, Description: "Edit selected connection"},
+	{Shortcut: deleteCmd, Description: "Delete selected connection"},
+	{Shortcut: moveCmd, Description: "Move connection to a file/tab"},
+	{Shortcut: addConfigCmd, Description: "Add a new config file"},
+	{Shortcut: renameConfigCmd, Description: "Rename a config file"},
+	{Shortcut: deleteConfigCmd, Description: "Delete empty config file"},
+	{Shortcut: quitCmd, Description: "Quit the application"},
+	{Shortcut: helpCmd, Description: "Show this help dialog"},
+}
+
 func matchesCommand(cmd string, shouldMatch string) bool {
 	cmds := strings.SplitSeq(shouldMatch, ",")
 	for s := range cmds {
@@ -44,17 +57,19 @@ func (c *cmdContext) Quit() {
 	c.cmd = tea.Quit
 }
 
-// OpenHelp sets the model mode to help.
+// OpenHelp sets the active component to help overlay.
+
 func (c *cmdContext) OpenHelp() {
-	c.model.Mode = ModeHelp
+	c.model.ActiveComponent = components.NewHelp(helpOptions, ColorPrimary, ColorMuted)
 }
 
 // OpenForm sets up and opens the add/edit interactive form.
 func (c *cmdContext) OpenForm(action string) {
 	c.model.FormAction = action
-	c.model.ActiveForm = c.model.BuildHostForm(c.model.ActiveTab)
-	c.model.Mode = ModeForm
-	c.cmd = c.model.ActiveForm.Init()
+	c.model.ActiveComponent = components.NewForm(c.model.BuildHostForm(c.model.ActiveTab), func() {
+		c.model.executeFormSubmit()
+	})
+	c.cmd = c.model.ActiveComponent.Init()
 }
 
 // SetAlert sets the model alert text banner.
@@ -105,11 +120,16 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 	case matchesCommand(cmd, deleteCmd):
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
-			m.ConfirmComponent = components.NewConfirm(
+			m.ActiveComponent = components.NewConfirm(
 				"Delete Connection?",
 				fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
+				func() tea.Cmd {
+					ctx := &cmdContext{model: m}
+					action := commands.Delete(m.Manager, selected)
+					action(ctx)
+					return ctx.cmd
+				},
 			)
-			m.Mode = ModeConfirm
 			return m, nil
 		} else {
 			return m, nil
