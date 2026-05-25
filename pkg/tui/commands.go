@@ -22,6 +22,8 @@ const (
 	addConfigCmd    = "addconf, add-config"
 	renameConfigCmd = "mvconf, rename-config"
 	deleteConfigCmd = "rmconf, delete-config"
+	pingCmd         = "p, ping"
+	pingAllCmd      = "P, pingall"
 )
 
 // helpOptions centralizes all interactive command shortcuts and their help text
@@ -30,6 +32,8 @@ var helpOptions = []components.HelpOption{
 	{Shortcut: editCmd, Description: "Edit selected connection"},
 	{Shortcut: deleteCmd, Description: "Delete selected connection"},
 	{Shortcut: moveCmd, Description: "Move connection to a file/tab"},
+	{Shortcut: pingCmd, Description: "Ping selected connection"},
+	{Shortcut: pingAllCmd, Description: "Ping all connections"},
 	{Shortcut: addConfigCmd, Description: "Add a new config file"},
 	{Shortcut: renameConfigCmd, Description: "Rename a config file"},
 	{Shortcut: deleteConfigCmd, Description: "Delete empty config file"},
@@ -152,6 +156,16 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 
 	case matchesCommand(cmd, helpCmd):
 		action = commands.Help()
+
+	case matchesCommand(cmd, pingAllCmd):
+		return m, m.PingAll()
+
+	case matchesCommand(cmd, pingCmd):
+		if len(m.Filtered) > 0 {
+			selected := m.Filtered[m.SelectedIndex]
+			return m, m.PingHost(selected)
+		}
+		return m, nil
 
 	case matchesCommand(cmd, addConfigCmd):
 		action = commands.AddConfig(m.Manager, parts)

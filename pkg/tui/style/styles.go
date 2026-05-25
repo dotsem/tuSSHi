@@ -84,4 +84,12 @@ var (
 
 	Muted = lipgloss.NewStyle().
 		Foreground(theme.Global.Muted)
+
+	StatusOnline = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#00FF00")).
+			Bold(true)
+
+	StatusOffline = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF0000")).
+			Bold(true)
 )

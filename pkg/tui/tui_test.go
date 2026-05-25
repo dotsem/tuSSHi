@@ -158,3 +158,54 @@ func TestTUIPrimaryConfigHiding(t *testing.T) {
 		assert.NotContains(t, m.Tabs, primaryPath)
 	})
 }
+
+// TestTUIPing verifies that the background ping structures work correctly.
+func TestTUIPing(t *testing.T) {
+	tmpDir := t.TempDir()
+	primaryPath := filepath.Join(tmpDir, "config")
+
+	content := `
+Host srv-1
+    HostName localhost
+    Port 9999
+`
+	err := os.WriteFile(primaryPath, []byte(content), 0600)
+	assert.NoError(t, err)
+
+	mgr := config.NewManager(primaryPath)
+	err = mgr.Load()
+	assert.NoError(t, err)
+
+	m := NewModel(mgr)
+
+	t.Run("PingAll initialization", func(t *testing.T) {
+		cmd := m.PingAll()
+		assert.NotNil(t, cmd)
+		assert.Contains(t, m.PingResults, "srv-1")
+		assert.True(t, m.PingResults["srv-1"].Pending)
+	})
+
+	t.Run("PingResultMsg processing", func(t *testing.T) {
+		updatedModel, cmd := m.Update(PingResultMsg{
+			Alias:   "srv-1",
+			Online:  true,
+			Latency: 12.34,
+		})
+		assert.Nil(t, cmd)
+		m = updatedModel.(*Model)
+		assert.False(t, m.PingResults["srv-1"].Pending)
+		assert.True(t, m.PingResults["srv-1"].Online)
+		assert.Equal(t, 12.34, m.PingResults["srv-1"].Latency)
+	})
+
+	t.Run("render status cell", func(t *testing.T) {
+		cell := m.renderStatusCell("srv-1", false, 15)
+		assert.Contains(t, cell, "Online")
+		assert.Contains(t, cell, "12ms")
+	})
+
+	t.Run("render status cell small screen", func(t *testing.T) {
+		cell := m.renderStatusCell("srv-1", false, 4)
+		assert.Contains(t, cell, "●")
+	})
+}

@@ -5,9 +5,9 @@
 
 **Goal:** Avoid standard 30-second SSH timeouts by knowing if a server is online before connecting.
 
-- [ ] Pool of non-blocking background goroutines performing quick TCP handshakes (e.g., `net.DialTimeout` with a 1-2s limit on the target `HostName:Port`).
-- [ ] Dynamic Bubble Tea messages (`PingResultMsg`) to update the TUI model reactively.
-- [ ] Interactive status column displaying **Online (Green with latency in ms)** or **Offline (Red)**.
+- [x] Pool of non-blocking background goroutines performing quick TCP handshakes (e.g., `net.DialTimeout` with a 1-2s limit on the target `HostName:Port`).
+- [x] Dynamic Bubble Tea messages (`PingResultMsg`) to update the TUI model reactively.
+- [x] Interactive status column displaying **Online (Green with latency in ms)** or **Offline (Red)**.
 
 ### Native Tagging via Lossless Comments
 
