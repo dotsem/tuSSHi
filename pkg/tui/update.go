@@ -43,6 +43,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
+		if msg.Type == tea.KeyCtrlC {
+			return m, tea.Quit
+		}
 		// Reset temporary notifications on keypress
 		m.AlertText = ""
 		m.ErrorText = ""

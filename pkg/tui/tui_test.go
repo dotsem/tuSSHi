@@ -60,6 +60,14 @@ Host srv-2
 		assert.Equal(t, ModeCommand, m.Mode)
 		assert.True(t, m.CommandInput.Focused())
 	})
+
+	t.Run("global ctrl+c exit", func(t *testing.T) {
+		_, cmd := m.Update(tea.KeyMsg{Type: tea.KeyCtrlC})
+		assert.NotNil(t, cmd)
+		msg := cmd()
+		_, isQuit := msg.(tea.QuitMsg)
+		assert.True(t, isQuit)
+	})
 }
 
 // TestTUICommandExec tests command mode execution parsing.
