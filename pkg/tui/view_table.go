@@ -218,11 +218,12 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 }
 
 func truncate(s string, w int) string {
-	if len(s) > w {
+	runes := []rune(s)
+	if len(runes) > w {
 		if w > 3 {
-			return s[:w-3] + "..."
+			return string(runes[:w-3]) + "..."
 		}
-		return s[:w]
+		return string(runes[:w])
 	}
 	return s
 }
