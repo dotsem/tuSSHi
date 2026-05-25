@@ -18,7 +18,7 @@ Furthermore, if you keep your server configurations modular using standard OpenS
 
 ### Prerequisites
 
-To compile tusshi from source, you need Go 1.22 or higher installed on your system.
+To compile tusshi from source, you need Go 1.26.3 or higher installed on your system.
 
 ### Building from Source
 
