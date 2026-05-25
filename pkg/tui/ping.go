@@ -108,10 +108,12 @@ func (m *Model) renderStatusCell(alias string, rowActive bool, width int) string
 
 // renderCell renders padded text, preserving background styling for selected rows.
 func renderCell(text string, cellStyle lipgloss.Style, rowActive bool, width int) string {
-	if len(text) > width {
+	runes := []rune(text)
+	if len(runes) > width {
 		text = truncate(text, width)
+		runes = []rune(text)
 	}
-	visibleLen := len(text)
+	visibleLen := len(runes)
 
 	finalStyle := cellStyle
 	if rowActive {
