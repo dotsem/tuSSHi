@@ -203,4 +203,9 @@ Host srv-1
 		assert.Contains(t, cell, "Online")
 		assert.Contains(t, cell, "12ms")
 	})
+
+	t.Run("render status cell small screen", func(t *testing.T) {
+		cell := m.renderStatusCell("srv-1", false, 4)
+		assert.Contains(t, cell, "●")
+	})
 }

@@ -23,54 +23,54 @@ func (m *Model) renderTable(width, maxHeight int) string {
 	case width >= 85:
 		wTotal := max(width-14, 10)
 		wAlias = int(float64(wTotal) * 0.15)
-		wName = int(float64(wTotal) * 0.20)
+		wName = int(float64(wTotal) * 0.30)
 		wUser = int(float64(wTotal) * 0.12)
 		wPort = int(float64(wTotal) * 0.08)
-		wStatus = int(float64(wTotal) * 0.25)
-		wConfig = wTotal - wAlias - wName - wUser - wPort - wStatus
+		wConfig = int(float64(wTotal) * 0.23)
+		wStatus = wTotal - wAlias - wName - wUser - wPort - wConfig
 
 		headerRow = fmt.Sprintf("  %-*s  %-*s  %-*s  %-*s  %-*s  %-*s",
 			wAlias, "ALIAS",
 			wName, "NAME / ADDRESS",
 			wUser, "USER",
 			wPort, "PORT",
-			wStatus, "STATUS",
 			wConfig, "CONFIG",
+			wStatus, "STATUS",
 		)
 		dividerRow = fmt.Sprintf("  %s  %s  %s  %s  %s  %s",
 			strings.Repeat("─", wAlias),
 			strings.Repeat("─", wName),
 			strings.Repeat("─", wUser),
 			strings.Repeat("─", wPort),
-			strings.Repeat("─", wStatus),
 			strings.Repeat("─", wConfig),
+			strings.Repeat("─", wStatus),
 		)
 	case width >= 65:
 		wTotal := max(width-12, 10)
 		wAlias = int(float64(wTotal) * 0.20)
-		wName = int(float64(wTotal) * 0.25)
+		wName = int(float64(wTotal) * 0.35)
 		wUser = int(float64(wTotal) * 0.15)
-		wStatus = int(float64(wTotal) * 0.20)
-		wConfig = wTotal - wAlias - wName - wUser - wStatus
+		wConfig = int(float64(wTotal) * 0.18)
+		wStatus = wTotal - wAlias - wName - wUser - wConfig
 
 		headerRow = fmt.Sprintf("  %-*s  %-*s  %-*s  %-*s  %-*s",
 			wAlias, "ALIAS",
 			wName, "NAME / ADDRESS",
 			wUser, "USER",
-			wStatus, "STATUS",
 			wConfig, "CONFIG",
+			wStatus, "STATUS",
 		)
 		dividerRow = fmt.Sprintf("  %s  %s  %s  %s  %s",
 			strings.Repeat("─", wAlias),
 			strings.Repeat("─", wName),
 			strings.Repeat("─", wUser),
-			strings.Repeat("─", wStatus),
 			strings.Repeat("─", wConfig),
+			strings.Repeat("─", wStatus),
 		)
 	case width >= 45:
 		wTotal := max(width-8, 10)
 		wAlias = int(float64(wTotal) * 0.30)
-		wStatus = int(float64(wTotal) * 0.30)
+		wStatus = 6
 		wName = wTotal - wAlias - wStatus
 
 		headerRow = fmt.Sprintf("  %-*s  %-*s  %-*s",
@@ -85,16 +85,19 @@ func (m *Model) renderTable(width, maxHeight int) string {
 		)
 	default:
 		wTotal := max(width-6, 10)
-		wAlias = int(float64(wTotal) * 0.40)
-		wName = wTotal - wAlias
+		wAlias = int(float64(wTotal) * 0.35)
+		wStatus = 2
+		wName = wTotal - wAlias - wStatus
 
-		headerRow = fmt.Sprintf("  %-*s  %-*s",
+		headerRow = fmt.Sprintf("  %-*s  %-*s  %-*s",
 			wAlias, "ALIAS",
 			wName, "NAME / ADDRESS",
+			wStatus, "S",
 		)
-		dividerRow = fmt.Sprintf("  %s  %s",
+		dividerRow = fmt.Sprintf("  %s  %s  %s",
 			strings.Repeat("─", wAlias),
 			strings.Repeat("─", wName),
+			strings.Repeat("─", wStatus),
 		)
 	}
 
@@ -116,7 +119,7 @@ func (m *Model) renderTable(width, maxHeight int) string {
 
 	for idx := startIndex; idx < len(m.Filtered) && len(rows) < maxHeight; idx++ {
 		h := m.Filtered[idx]
-		rows = append(rows, m.renderRow(h, idx, width, wAlias, wName, wUser, wPort, wStatus))
+		rows = append(rows, m.renderRow(h, idx, wAlias, wName, wUser, wPort, wStatus, wConfig))
 	}
 
 	return strings.Join(rows, "\n")
@@ -177,12 +180,6 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 		cells = append(cells, renderCell(port, portStyle, rowActive, wPort))
 	}
 
-	// Status cell
-	if wStatus > 0 {
-		statusCell := m.renderStatusCell(h.Alias, rowActive, wStatus)
-		cells = append(cells, statusCell)
-	}
-
 	// Config cell
 	if wConfig > 0 {
 		cfgNickname := strings.TrimSuffix(GetTabLabel(h.SourceFile), ".conf")
@@ -195,6 +192,12 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 			cfgStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 		}
 		cells = append(cells, renderCell(cfgNickname, cfgStyle, rowActive, wConfig))
+	}
+
+	// Status cell
+	if wStatus > 0 {
+		statusCell := m.renderStatusCell(h.Alias, rowActive, wStatus)
+		cells = append(cells, statusCell)
 	}
 
 	rowContent := strings.Join(cells, "  ")

@@ -16,7 +16,7 @@ func stripANSI(s string) string {
 
 // View renders the TUSSHI TUI interface based on state and window constraints.
 func (m *Model) View() string {
-	if m.Width < 25 || m.Height < 10 {
+	if m.Width < 40 || m.Height < 20 {
 		return "Terminal is too small."
 	}
 

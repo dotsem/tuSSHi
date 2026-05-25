@@ -76,17 +76,34 @@ func (m *Model) PingAll() tea.Cmd {
 // Blends row active backgrounds and column width limits correctly.
 func (m *Model) renderStatusCell(alias string, rowActive bool, width int) string {
 	res, exists := m.PingResults[alias]
+	isSmall := width < 10
+
 	if !exists {
-		return renderCell("Pending", style.Muted, rowActive, width)
+		text := "Pending"
+		if isSmall {
+			text = "○"
+		}
+		return renderCell(text, style.Muted, rowActive, width)
 	}
 	if res.Pending {
-		return renderCell("Checking...", style.Muted, rowActive, width)
+		text := "Checking..."
+		if isSmall {
+			text = "○"
+		}
+		return renderCell(text, style.Muted, rowActive, width)
 	}
 	if res.Online {
 		text := fmt.Sprintf("Online (%.0fms)", res.Latency)
+		if isSmall {
+			text = fmt.Sprintf("● %.0fms", res.Latency)
+		}
 		return renderCell(text, style.StatusOnline, rowActive, width)
 	}
-	return renderCell("Offline", style.StatusOffline, rowActive, width)
+	text := "Offline"
+	if isSmall {
+		text = "ø"
+	}
+	return renderCell(text, style.StatusOffline, rowActive, width)
 }
 
 // renderCell renders padded text, preserving background styling for selected rows.
