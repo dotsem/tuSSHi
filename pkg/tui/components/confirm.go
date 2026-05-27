@@ -47,7 +47,7 @@ func (c *Confirm) Update(msg tea.Msg) (tea.Cmd, bool) {
 			c.YesSelected = true
 		case "right", "l":
 			c.YesSelected = false
-		case "enter":
+		case keyEnter:
 			if c.YesSelected && c.OnConfirm != nil {
 				return c.OnConfirm(), true
 			}

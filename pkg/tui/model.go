@@ -6,6 +6,7 @@ import (
 
 	"tusshi/pkg/config"
 	"tusshi/pkg/tui/components"
+	"tusshi/pkg/tui/theme"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -88,6 +89,16 @@ func NewModel(mgr *config.Manager) *Model {
 		PingResults:  make(map[string]*PingResult),
 	}
 	m.Reload()
+
+	if err := mgr.EnsureFirstRunBackup(); err != nil {
+		m.ActiveComponent = &components.Alert{
+			Title:   "Backup Failed",
+			Message: "Could not create initial pre-tuSSHi backup:\n" + err.Error() + "\n\nPlease ensure SSH directory permissions are correct.",
+			IsError: true,
+			Theme:   theme.Global,
+		}
+	}
+
 	return m
 }
 
