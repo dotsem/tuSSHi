@@ -44,6 +44,12 @@ mv tusshi /usr/local/bin/
 ./linux-install.sh
 ```
 
+For development it is recommended to create a symlink:
+
+```bash
+ln -s $(pwd)/cmd/tusshi/tusshi ~/.local/bin/tusshi
+```
+
 ### Installing on MacOS
 
 Currently built from source, homebrew support will be added later on.
