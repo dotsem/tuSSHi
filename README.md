@@ -1,3 +1,5 @@
+<img width="200" alt="tusshi logo" src="assets/tusshi.png" align="right">
+
 # tuSSHi
 
 tuSSHi is a terminal user interface connection manager for your standard SSH configuration files, built in Go using the Bubble Tea framework.
