@@ -110,11 +110,23 @@ func TestTUIConfigCommands(t *testing.T) {
 	subPath := filepath.Join(tmpDir, "sub-config-tui")
 	renamedPath := filepath.Join(tmpDir, "renamed-config-tui")
 
+	t.Run("add-config validation error", func(t *testing.T) {
+		m.ErrorText = ""
+		_, _ = m.executeCommand("add-config invalid*config")
+		assert.Contains(t, m.ErrorText, "Invalid config name")
+	})
+
 	t.Run("add-config", func(t *testing.T) {
 		_, _ = m.executeCommand("add-config " + subPath)
 		assert.FileExists(t, subPath)
 		assert.Contains(t, m.Manager.FileOrder, subPath)
 		assert.Equal(t, subPath, m.ActiveTab)
+	})
+
+	t.Run("rename-config validation error", func(t *testing.T) {
+		m.ErrorText = ""
+		_, _ = m.executeCommand("rename-config invalid*rename")
+		assert.Contains(t, m.ErrorText, "Invalid config name")
 	})
 
 	t.Run("rename-config", func(t *testing.T) {

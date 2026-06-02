@@ -1,17 +1,13 @@
 package tui
 
 import (
-	"errors"
 	"path/filepath"
-	"regexp"
-	"strings"
 
 	"tusshi/pkg/config"
+	"tusshi/pkg/validation"
 
 	"github.com/charmbracelet/huh"
 )
-
-var forbiddenAliasChars = regexp.MustCompile(`[<>:"/\\|?*$]`)
 
 // BuildHostForm creates a beautiful multi-step interactive form using Huh
 // for adding or editing an SSH connection. It accommodates standard fields
@@ -69,7 +65,7 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 			Description("What you will type to connect (e.g. prod-web-01)").
 			Placeholder("my-server").
 			Value(&m.FormHost.Alias).
-			Validate(validateAlias),
+			Validate(validation.ValidateAlias),
 		huh.NewInput().
 			Title("Server Address / HostName").
 			Description("Domain or IP address of the target server").
@@ -115,17 +111,4 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 		WithWidth(60)
 
 	return form
-}
-
-func validateAlias(str string) error {
-	if str == "" {
-		return errors.New("alias is required")
-	}
-	if len(strings.Split(str, " ")) > 1 {
-		return errors.New("alias cannot contain spaces")
-	}
-	if forbiddenAliasChars.MatchString(str) {
-		return errors.New("alias cannot contain forbidden characters (<, >, :, \", /, \\, |, ?, *, $)")
-	}
-	return nil
 }

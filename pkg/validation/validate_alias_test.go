@@ -1,4 +1,5 @@
-package tui
+// Package validation contains testing suites for input validation functions.
+package validation
 
 import (
 	"testing"
@@ -101,7 +102,7 @@ func TestValidateAlias(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateAlias(tt.alias)
+			err := ValidateAlias(tt.alias)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errMsg)

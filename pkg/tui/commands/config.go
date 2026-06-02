@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"tusshi/pkg/config"
+	"tusshi/pkg/validation"
 )
 
 const tabAll = "All"
@@ -25,6 +26,11 @@ func AddConfig(mgr *config.Manager, parts []string) func(Context) {
 			targetPath = arg
 		} else {
 			targetPath = filepath.Join(filepath.Dir(mgr.PrimaryPath), arg)
+		}
+
+		if err := validation.ValidateConfigName(filepath.Base(targetPath)); err != nil {
+			ctx.SetError("Invalid config name: " + err.Error())
+			return
 		}
 
 		if err := mgr.AddConfigFile(targetPath); err != nil {
@@ -81,6 +87,11 @@ func RenameConfig(mgr *config.Manager, parts []string) func(Context) {
 			newPath = newName
 		} else {
 			newPath = filepath.Join(filepath.Dir(mgr.PrimaryPath), newName)
+		}
+
+		if err := validation.ValidateConfigName(filepath.Base(newPath)); err != nil {
+			ctx.SetError("Invalid config name: " + err.Error())
+			return
 		}
 
 		if err := mgr.RenameConfigFile(oldPath, newPath); err != nil {
