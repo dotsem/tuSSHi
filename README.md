@@ -29,7 +29,7 @@ Clone the repository and build the binary:
 ```bash
 git clone https://github.com/dotsem/tusshi.git
 cd tusshi
-go build -o tusshi cmd/main.go
+go build -o tusshi cmd/tusshi/main.go
 ```
 
 You can run the compiled binary directly or move it into a directory in your system PATH (such as `/usr/local/bin`):
@@ -37,6 +37,20 @@ You can run the compiled binary directly or move it into a directory in your sys
 ```bash
 mv tusshi /usr/local/bin/
 ```
+
+### Installing on Linux 
+
+```bash
+./linux-install.sh
+```
+
+### Installing on MacOS
+
+Currently built from source, homebrew support will be added later on.
+
+### Installing on Windows
+
+Currently built from source, package manager support will be added later on.
 
 ---
 

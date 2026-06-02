@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=tuSSHi
+Comment=Interactive SSH connection manager (TUI)
+Icon=tusshi
+Exec=tusshi
+Terminal=true
+Categories=System;Utility;TerminalEmulator;
+Keywords=ssh;tui;config;connection;manager;
