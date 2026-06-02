@@ -1,10 +1,10 @@
 package tui
 
 import (
-	"errors"
 	"path/filepath"
 
 	"tusshi/pkg/config"
+	"tusshi/pkg/validation"
 
 	"github.com/charmbracelet/huh"
 )
@@ -65,12 +65,7 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 			Description("What you will type to connect (e.g. prod-web-01)").
 			Placeholder("my-server").
 			Value(&m.FormHost.Alias).
-			Validate(func(str string) error {
-				if str == "" {
-					return errors.New("alias is required")
-				}
-				return nil
-			}),
+			Validate(validation.ValidateAlias),
 		huh.NewInput().
 			Title("Server Address / HostName").
 			Description("Domain or IP address of the target server").
