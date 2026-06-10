@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"tusshi/pkg/config"
-	"tusshi/pkg/tui/components"
-	"tusshi/pkg/tui/theme"
+	"tusshi/internal/config"
+	"tusshi/internal/tui/components"
+	"tusshi/internal/tui/theme"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"

@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"tusshi/pkg/config"
-	"tusshi/pkg/tui"
+	"tusshi/internal/config"
+	"tusshi/internal/tui"
 
 	tea "github.com/charmbracelet/bubbletea"
 )

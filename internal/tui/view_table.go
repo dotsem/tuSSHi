@@ -3,8 +3,8 @@ package tui
 import (
 	"fmt"
 	"strings"
-	"tusshi/pkg/config"
-	"tusshi/pkg/tui/style"
+	"tusshi/internal/config"
+	"tusshi/internal/tui/style"
 
 	"github.com/charmbracelet/lipgloss"
 )

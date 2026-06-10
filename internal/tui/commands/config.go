@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"tusshi/pkg/config"
-	"tusshi/pkg/validation"
+	"tusshi/internal/config"
+	"tusshi/internal/validation"
 )
 
 const tabAll = "All"

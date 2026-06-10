@@ -3,8 +3,8 @@ package tui
 import (
 	"path/filepath"
 
-	"tusshi/pkg/config"
-	"tusshi/pkg/validation"
+	"tusshi/internal/config"
+	"tusshi/internal/validation"
 
 	"github.com/charmbracelet/huh"
 )

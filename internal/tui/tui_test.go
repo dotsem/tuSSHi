@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"tusshi/pkg/config"
+	"tusshi/internal/config"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"

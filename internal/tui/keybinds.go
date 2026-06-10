@@ -3,10 +3,10 @@ package tui
 import (
 	"fmt"
 
-	"tusshi/pkg/ssh"
-	"tusshi/pkg/tui/commands"
-	"tusshi/pkg/tui/components"
-	"tusshi/pkg/tui/theme"
+	"tusshi/internal/ssh"
+	"tusshi/internal/tui/commands"
+	"tusshi/internal/tui/components"
+	"tusshi/internal/tui/theme"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"

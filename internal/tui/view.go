@@ -3,7 +3,7 @@ package tui
 import (
 	"regexp"
 	"strings"
-	"tusshi/pkg/tui/style"
+	"tusshi/internal/tui/style"
 
 	"github.com/charmbracelet/lipgloss"
 )
