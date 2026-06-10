@@ -2,7 +2,7 @@
 package style
 
 import (
-	"tusshi/pkg/tui/theme"
+	"tusshi/internal/tui/theme"
 
 	"github.com/charmbracelet/lipgloss"
 )

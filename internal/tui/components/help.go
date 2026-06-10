@@ -3,7 +3,7 @@ package components
 import (
 	"fmt"
 	"strings"
-	"tusshi/pkg/tui/theme"
+	"tusshi/internal/tui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

@@ -3,7 +3,7 @@ package components_test
 import (
 	"testing"
 
-	"tusshi/pkg/tui/components"
+	"tusshi/internal/tui/components"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"

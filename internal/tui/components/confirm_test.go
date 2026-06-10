@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"tusshi/pkg/tui/components"
-	"tusshi/pkg/tui/theme"
+	"tusshi/internal/tui/components"
+	"tusshi/internal/tui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
 )

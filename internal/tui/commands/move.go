@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"tusshi/pkg/config"
+	"tusshi/internal/config"
 )
 
 // Move handles moving a connection from one configuration file/tab to another.

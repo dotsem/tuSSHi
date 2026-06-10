@@ -1,7 +1,7 @@
 package tui
 
 import (
-	"tusshi/pkg/tui/style"
+	"tusshi/internal/tui/style"
 
 	"github.com/charmbracelet/lipgloss"
 )

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"tusshi/pkg/config"
-	"tusshi/pkg/ping"
-	"tusshi/pkg/tui/style"
+	"tusshi/internal/config"
+	"tusshi/internal/ping"
+	"tusshi/internal/tui/style"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

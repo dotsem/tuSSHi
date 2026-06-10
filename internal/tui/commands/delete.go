@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"tusshi/pkg/config"
+	"tusshi/internal/config"
 )
 
 // Delete returns a function that executes the deletion of a host connection.
