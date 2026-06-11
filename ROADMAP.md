@@ -25,7 +25,19 @@ This document outlines the planned design improvements, features, and core focus
 
 ---
 
-## 3. Remote Execution Shortcuts
+## 3. SSH Key & Agent Management
+
+### Native Key Distribution
+- [ ] Integrate system `ssh-copy-id` wrapper to distribute public keys directly to password-authenticated hosts via a TUI command (e.g., `:copy-key`).
+
+### `ssh-agent` Diagnostics & Key Management
+- [ ] Parse connection `IdentityFile` declarations and query the running `ssh-agent` socket natively via UNIX socket dialing (`golang.org/x/crypto/ssh/agent`).
+- [ ] Add visual key loading indicators in the TUI (Green: Key cached; Yellow: Key not cached, passphrase required; Red: Agent unreachable/no key).
+- [ ] Implement one-click TUI key addition to trigger standard `ssh-add` in a sub-shell overlay to cache keys on-demand.
+
+---
+
+## 4. Remote Execution Shortcuts
 
 ### Command Bookmarks & Startup Snippets
 - [ ] Support bookmarking remote commands inside the configuration file using lossless comments (e.g., `# bookmark: Tail access logs | tail -f /var/log/nginx/access.log`).
