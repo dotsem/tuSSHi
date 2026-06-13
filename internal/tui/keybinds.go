@@ -75,7 +75,8 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "a":
 		m.FormAction = actionAdd
 		m.ActiveComponent = &components.Form{
-			Form: m.BuildHostForm(m.ActiveTab),
+			Form:     m.BuildHostForm(m.ActiveTab),
+			Validate: m.ValidateForm,
 			OnSubmit: func() {
 				m.executeFormSubmit()
 			},
@@ -86,7 +87,8 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if len(m.Filtered) > 0 {
 			m.FormAction = actionEdit
 			m.ActiveComponent = &components.Form{
-				Form: m.BuildHostForm(m.ActiveTab),
+				Form:     m.BuildHostForm(m.ActiveTab),
+				Validate: m.ValidateForm,
 				OnSubmit: func() {
 					m.executeFormSubmit()
 				},
