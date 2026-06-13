@@ -75,7 +75,8 @@ func (c *cmdContext) OpenHelp() {
 func (c *cmdContext) OpenForm(action string) {
 	c.model.FormAction = action
 	c.model.ActiveComponent = &components.Form{
-		Form: c.model.BuildHostForm(c.model.ActiveTab),
+		Form:     c.model.BuildHostForm(c.model.ActiveTab),
+		Validate: c.model.ValidateForm,
 		OnSubmit: func() {
 			c.model.executeFormSubmit()
 		},

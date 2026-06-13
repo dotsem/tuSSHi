@@ -1,6 +1,10 @@
 package components
 
 import (
+	"reflect"
+	"strings"
+
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 )
@@ -9,6 +13,7 @@ import (
 type Form struct {
 	Form     *huh.Form
 	OnSubmit func()
+	Validate func() error
 }
 
 // Init initializes the huh form.
@@ -18,8 +23,31 @@ func (f *Form) Init() tea.Cmd {
 
 // Update delegates key inputs to Huh and triggers submission.
 func (f *Form) Update(msg tea.Msg) (tea.Cmd, bool) {
-	if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == keyEsc {
-		return nil, true
+	if keyMsg, ok := msg.(tea.KeyMsg); ok {
+		switch keyMsg.String() {
+		case keyEsc:
+			return nil, true
+
+		case "alt+enter", "ctrl+s":
+			if focused := f.Form.GetFocusedField(); focused != nil {
+				_ = focused.Blur()
+			}
+
+			if f.Validate != nil {
+				if err := f.Validate(); err != nil {
+					if focused := f.Form.GetFocusedField(); focused != nil {
+						_ = focused.Focus()
+					}
+					return nil, false
+				}
+			}
+
+			f.Form.State = huh.StateCompleted
+			if f.OnSubmit != nil {
+				f.OnSubmit()
+			}
+			return nil, true
+		}
 	}
 
 	newForm, cmd := f.Form.Update(msg)
@@ -38,7 +66,46 @@ func (f *Form) Update(msg tea.Msg) (tea.Cmd, bool) {
 	return cmd, false
 }
 
-// View renders the huh form.
+// View renders the huh form with a custom help footer.
 func (f *Form) View(_ int) string {
-	return f.Form.View()
+	formView := f.Form.View()
+	if f.Form.State != huh.StateNormal {
+		return formView
+	}
+
+	var bindings []key.Binding
+
+	bindings = append(bindings, key.NewBinding(
+		key.WithKeys("ctrl+s", "alt+enter"),
+		key.WithHelp("ctrl+s/alt+enter", "save"),
+	))
+
+	if focused := f.Form.GetFocusedField(); focused != nil {
+		focusedType := reflect.TypeOf(focused).String()
+		if strings.Contains(focusedType, "Select") {
+			bindings = append(bindings, key.NewBinding(
+				key.WithKeys("enter"),
+				key.WithHelp("enter", "select"),
+			))
+		} else {
+			bindings = append(bindings, key.NewBinding(
+				key.WithKeys("enter", "tab"),
+				key.WithHelp("enter", "next"),
+			))
+		}
+	}
+
+	bindings = append(bindings, key.NewBinding(
+		key.WithKeys("shift+tab"),
+		key.WithHelp("shift+tab", "back"),
+	))
+
+	bindings = append(bindings, key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "exit"),
+	))
+
+	helpView := f.Form.Help().ShortHelpView(bindings)
+
+	return formView + "\n\n" + helpView
 }

@@ -108,7 +108,16 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 	// Construct the final beautiful form
 	form := huh.NewForm(groups...).
 		WithTheme(huh.ThemeCharm()).
-		WithWidth(60)
+		WithWidth(60).
+		WithShowHelp(false)
 
 	return form
+}
+
+// ValidateForm validates the current fields in the host form.
+func (m *Model) ValidateForm() error {
+	if m.FormHost == nil {
+		return nil
+	}
+	return validation.ValidateAlias(m.FormHost.Alias)
 }
