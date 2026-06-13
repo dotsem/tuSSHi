@@ -85,10 +85,10 @@ func TestFormValidationAndSubmission(t *testing.T) {
 		},
 	}
 
-	// Case 1: Validation fails on ctrl+j
+	// Part 1: Validation fails
 	f.Form.State = huh.StateNormal
 	validationErr = errors.New("invalid field")
-	_, done := f.Update(tea.KeyMsg{Type: tea.KeyCtrlJ})
+	_, done := f.Update(tea.KeyMsg{Type: tea.KeyCtrlS})
 	if done {
 		t.Error("expected form to not finalize when validation fails")
 	}
@@ -99,13 +99,12 @@ func TestFormValidationAndSubmission(t *testing.T) {
 		t.Error("expected form not to submit when validation fails")
 	}
 
-	// Reset flags
+	// Part 2: validation succeeds
 	validated = false
 	submitted = false
 
-	// Case 2: Validation succeeds on ctrl+j
 	validationErr = nil
-	_, done = f.Update(tea.KeyMsg{Type: tea.KeyCtrlJ})
+	_, done = f.Update(tea.KeyMsg{Type: tea.KeyCtrlS})
 	if !done {
 		t.Error("expected form to finalize when validation succeeds")
 	}
