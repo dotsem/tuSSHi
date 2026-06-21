@@ -1,13 +1,13 @@
 package components_test
 
 import (
-	"strings"
 	"testing"
 
 	"tusshi/internal/tui/components"
 	"tusshi/internal/tui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHelpComponent(t *testing.T) {
@@ -21,44 +21,32 @@ func TestHelpComponent(t *testing.T) {
 		Theme:   theme.Mock,
 	}
 
-	// Test Init
-	if cmd := h.Init(); cmd != nil {
-		t.Error("expected Init to return nil")
-	}
+	t.Run("init", func(t *testing.T) {
+		assert.Nil(t, h.Init())
+	})
 
-	// Test View rendering
-	rendered := h.View(50)
-	if !strings.Contains(rendered, "Available Commands") {
-		t.Error("expected view to contain header")
-	}
-	if !strings.Contains(rendered, "j/k") || !strings.Contains(rendered, "Navigate list") {
-		t.Error("expected view to contain 'j/k' shortcut and description")
-	}
-	if !strings.Contains(rendered, "a") || !strings.Contains(rendered, "Add host") {
-		t.Error("expected view to contain 'a' shortcut and description")
-	}
+	t.Run("view", func(t *testing.T) {
+		rendered := h.View(50)
+		assert.Contains(t, rendered, "Available Commands")
+		assert.Contains(t, rendered, "j/k")
+		assert.Contains(t, rendered, "Navigate list")
+		assert.Contains(t, rendered, "a")
+		assert.Contains(t, rendered, "Add host")
+	})
 
-	// Test closing keys: Esc
-	_, done := h.Update(tea.KeyMsg{Type: tea.KeyEsc})
-	if !done {
-		t.Error("expected Esc to finish help dialog")
-	}
+	t.Run("closing keys", func(t *testing.T) {
+		_, done := h.Update(tea.KeyMsg{Type: tea.KeyEsc})
+		assert.True(t, done)
 
-	// Test closing keys: q
-	_, done = h.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
-	if !done {
-		t.Error("expected 'q' to finish help dialog")
-	}
+		_, done = h.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
+		assert.True(t, done)
 
-	// Test closing keys: Enter
-	_, done = h.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	if !done {
-		t.Error("expected Enter to finish help dialog")
-	}
+		_, done = h.Update(tea.KeyMsg{Type: tea.KeyEnter})
+		assert.True(t, done)
+	})
 
-	// Test non-closing keys
-	_, done = h.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("x")})
-	if done {
-		t.Error("expected other keys to not finish help dialog")
-	}
+	t.Run("non-closing keys", func(t *testing.T) {
+		_, done := h.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("x")})
+		assert.False(t, done)
+	})
 }

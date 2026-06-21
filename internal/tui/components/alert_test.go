@@ -1,13 +1,13 @@
 package components_test
 
 import (
-	"strings"
 	"testing"
 
 	"tusshi/internal/tui/components"
 	"tusshi/internal/tui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAlertComponent(t *testing.T) {
@@ -18,35 +18,30 @@ func TestAlertComponent(t *testing.T) {
 		Theme:   theme.Mock,
 	}
 
-	if cmd := alert.Init(); cmd != nil {
-		t.Errorf("expected Init to return nil, got %v", cmd)
-	}
+	t.Run("init", func(t *testing.T) {
+		assert.Nil(t, alert.Init())
+	})
 
-	rendered := alert.View(50)
-	if !strings.Contains(rendered, "Backup Failed") {
-		t.Error("expected view to contain title")
-	}
-	if !strings.Contains(rendered, "Could not create initial pre-tuSSHi backup") {
-		t.Error("expected view to contain message")
-	}
-	if !strings.Contains(rendered, "OK") {
-		t.Error("expected view to contain OK button")
-	}
+	t.Run("view", func(t *testing.T) {
+		rendered := alert.View(50)
+		assert.Contains(t, rendered, "Backup Failed")
+		assert.Contains(t, rendered, "Could not create initial pre-tuSSHi backup")
+		assert.Contains(t, rendered, "OK")
+	})
 
-	_, done := alert.Update(tea.KeyMsg{Type: tea.KeyEsc})
-	if !done {
-		t.Error("expected Esc to dismiss alert")
-	}
-	_, done = alert.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
-	if !done {
-		t.Error("expected 'q' to dismiss alert")
-	}
-	_, done = alert.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	if !done {
-		t.Error("expected Enter to dismiss alert")
-	}
-	_, done = alert.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("x")})
-	if done {
-		t.Error("expected other keys to not dismiss alert")
-	}
+	t.Run("dismiss keys", func(t *testing.T) {
+		_, done := alert.Update(tea.KeyMsg{Type: tea.KeyEsc})
+		assert.True(t, done)
+
+		_, done = alert.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
+		assert.True(t, done)
+
+		_, done = alert.Update(tea.KeyMsg{Type: tea.KeyEnter})
+		assert.True(t, done)
+	})
+
+	t.Run("non-dismiss keys", func(t *testing.T) {
+		_, done := alert.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("x")})
+		assert.False(t, done)
+	})
 }

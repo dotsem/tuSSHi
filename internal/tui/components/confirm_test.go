@@ -1,13 +1,13 @@
 package components_test
 
 import (
-	"strings"
 	"testing"
 
 	"tusshi/internal/tui/components"
 	"tusshi/internal/tui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConfirmComponent(t *testing.T) {
@@ -22,56 +22,40 @@ func TestConfirmComponent(t *testing.T) {
 		},
 	}
 
-	if c.Title != "Test Confirm" {
-		t.Errorf("expected Title 'Test Confirm', got %q", c.Title)
-	}
+	t.Run("initial state", func(t *testing.T) {
+		assert.Equal(t, "Test Confirm", c.Title)
+		assert.False(t, c.YesSelected)
+	})
 
-	if c.YesSelected {
-		t.Error("expected YesSelected to be false by default")
-	}
+	t.Run("move left", func(t *testing.T) {
+		_, done := c.Update(tea.KeyMsg{Type: tea.KeyLeft})
+		assert.False(t, done)
+		assert.True(t, c.YesSelected)
+	})
 
-	// Move left
-	_, done := c.Update(tea.KeyMsg{Type: tea.KeyLeft})
-	if done {
-		t.Error("expected navigation to not finalize selection")
-	}
-	if !c.YesSelected {
-		t.Error("expected YesSelected to be true after left key press")
-	}
+	t.Run("move right", func(t *testing.T) {
+		_, done := c.Update(tea.KeyMsg{Type: tea.KeyRight})
+		assert.False(t, done)
+		assert.False(t, c.YesSelected)
+	})
 
-	// Move right
-	_, done = c.Update(tea.KeyMsg{Type: tea.KeyRight})
-	if done {
-		t.Error("expected navigation to not finalize selection")
-	}
-	if c.YesSelected {
-		t.Error("expected YesSelected to be false after right key press")
-	}
+	t.Run("confirm no", func(t *testing.T) {
+		_, done := c.Update(tea.KeyMsg{Type: tea.KeyEnter})
+		assert.True(t, done)
+		assert.False(t, confirmedCalled)
+	})
 
-	// Confirm 'No'
-	_, done = c.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	if !done {
-		t.Error("expected done to be true after enter key press")
-	}
-	if confirmedCalled {
-		t.Error("expected confirmedCalled to be false since 'No' was focused")
-	}
+	t.Run("select yes and confirm yes", func(t *testing.T) {
+		c.YesSelected = true
+		_, done := c.Update(tea.KeyMsg{Type: tea.KeyEnter})
+		assert.True(t, done)
+		assert.True(t, confirmedCalled)
+	})
 
-	// Select Yes and Confirm 'Yes'
-	c.YesSelected = true
-	_, done = c.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	if !done {
-		t.Error("expected done to be true after enter key press on Yes")
-	}
-	if !confirmedCalled {
-		t.Error("expected confirmedCalled to be true since 'Yes' was focused")
-	}
-
-	// Esc test
-	_, done = c.Update(tea.KeyMsg{Type: tea.KeyEsc})
-	if !done {
-		t.Error("expected done to be true after esc key press")
-	}
+	t.Run("esc close", func(t *testing.T) {
+		_, done := c.Update(tea.KeyMsg{Type: tea.KeyEsc})
+		assert.True(t, done)
+	})
 }
 
 func TestConfirmCustomLabels(t *testing.T) {
@@ -79,18 +63,18 @@ func TestConfirmCustomLabels(t *testing.T) {
 		Theme: theme.Mock,
 	}
 
-	// Verify defaults render when fields are left empty
-	viewEmpty := c.View(40)
-	if !strings.Contains(viewEmpty, " Yes ") || !strings.Contains(viewEmpty, " No  ") {
-		t.Error("expected view to render default button labels when empty")
-	}
+	t.Run("default labels", func(t *testing.T) {
+		viewEmpty := c.View(40)
+		assert.Contains(t, viewEmpty, " Yes ")
+		assert.Contains(t, viewEmpty, " No  ")
+	})
 
-	// Apply Option 2 (direct mutation)
-	c.YesStr = " Delete "
-	c.NoStr = " Cancel "
+	t.Run("custom labels", func(t *testing.T) {
+		c.YesStr = " Delete "
+		c.NoStr = " Cancel "
 
-	viewCustom := c.View(40)
-	if !strings.Contains(viewCustom, " Delete ") || !strings.Contains(viewCustom, " Cancel ") {
-		t.Error("expected view to render custom button labels after mutation")
-	}
+		viewCustom := c.View(40)
+		assert.Contains(t, viewCustom, " Delete ")
+		assert.Contains(t, viewCustom, " Cancel ")
+	})
 }
