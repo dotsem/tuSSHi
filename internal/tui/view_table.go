@@ -18,7 +18,6 @@ func (m *Model) renderTable(width, maxHeight int) string {
 	var headerRow, dividerRow string
 	var wAlias, wName, wUser, wPort, wStatus, wConfig int
 
-	// adaptive column allocation to prevent overflow at small terminal widths
 	switch {
 	case width >= 85:
 		wTotal := max(width-14, 10)
@@ -132,7 +131,6 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 
 	var cells []string
 
-	// Alias cell
 	alias := truncate(h.Alias, wAlias)
 	var aliasStyle lipgloss.Style
 	if rowActive {
@@ -142,7 +140,6 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 	}
 	cells = append(cells, renderCell(alias, aliasStyle, rowActive, wAlias))
 
-	// Name cell
 	name := truncate(h.Name, wName)
 	var nameStyle lipgloss.Style
 	if rowActive {
@@ -152,7 +149,6 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 	}
 	cells = append(cells, renderCell(name, nameStyle, rowActive, wName))
 
-	// User cell
 	if wUser > 0 {
 		user := truncate(h.User, wUser)
 		var userStyle lipgloss.Style
@@ -164,7 +160,6 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 		cells = append(cells, renderCell(user, userStyle, rowActive, wUser))
 	}
 
-	// Port cell
 	if wPort > 0 {
 		port := h.Port
 		if port == "" {
@@ -180,7 +175,6 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 		cells = append(cells, renderCell(port, portStyle, rowActive, wPort))
 	}
 
-	// Config cell
 	if wConfig > 0 {
 		cfgNickname := strings.TrimSuffix(GetTabLabel(h.SourceFile), ".conf")
 		cfgNickname = strings.TrimSuffix(cfgNickname, "config")
@@ -194,7 +188,6 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 		cells = append(cells, renderCell(cfgNickname, cfgStyle, rowActive, wConfig))
 	}
 
-	// Status cell
 	if wStatus > 0 {
 		statusCell := m.renderStatusCell(h.Alias, rowActive, wStatus)
 		cells = append(cells, statusCell)

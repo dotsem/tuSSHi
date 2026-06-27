@@ -110,7 +110,6 @@ func (m *Model) Reload() {
 	}
 	m.Hosts = m.Manager.GetHosts()
 
-	// prune ping results for hosts that no longer exist
 	if m.PingResults != nil {
 		activeAliases := make(map[string]bool)
 		for _, h := range m.Hosts {
@@ -125,7 +124,7 @@ func (m *Model) Reload() {
 
 	m.Tabs = []string{tabAll}
 	for _, f := range m.Manager.FileOrder {
-		// Filter out the "config" file as it can't be renamed or deleted and just creates confusion.
+		// why: primary ssh config must not be renamed or deleted via the UI
 		if f == m.Manager.PrimaryPath {
 			hasConnections := false
 			for _, h := range m.Hosts {
@@ -139,11 +138,9 @@ func (m *Model) Reload() {
 			}
 			continue
 		}
-		// All other config files are added as tabs
 		m.Tabs = append(m.Tabs, f)
 	}
 
-	// Default active tab to All if not set or invalid
 	tabValid := false
 	for _, t := range m.Tabs {
 		if t == m.ActiveTab {
@@ -164,17 +161,15 @@ func (m *Model) FilterHosts() {
 	searchQ := strings.ToLower(m.SearchInput.Value())
 
 	for _, h := range m.Hosts {
-		// Tab matching
 		if m.ActiveTab != "All" && h.SourceFile != m.ActiveTab {
 			continue
 		}
 
-		// Skip wildcards from the main listing to keep it connection-focused
+		// why: wildcard configs (e.g. Host *) are metadata, not connectable hosts
 		if h.IsWildcard {
 			continue
 		}
 
-		// Substring match on Alias, Address (Name), or User
 		aliasMatch := strings.Contains(strings.ToLower(h.Alias), searchQ)
 		nameMatch := strings.Contains(strings.ToLower(h.Name), searchQ)
 		userMatch := strings.Contains(strings.ToLower(h.User), searchQ)
@@ -186,7 +181,6 @@ func (m *Model) FilterHosts() {
 
 	m.Filtered = filtered
 
-	// Clamp selected index within range
 	if m.SelectedIndex >= len(m.Filtered) {
 		m.SelectedIndex = len(m.Filtered) - 1
 	}

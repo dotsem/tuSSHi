@@ -113,8 +113,7 @@ func (m *Manager) UpdateHost(originalAlias string, h *Host) error {
 	}
 
 	if newASTHost != nil {
-		// Keep any existing comment nodes from the original host block
-		// This makes sure we don't remove user generated comments from the file
+		// why: user comments must be preserved inside the edited host block to prevent data loss
 		for _, node := range targetCfg.Hosts[targetIdx].Nodes {
 			if _, isComment := node.(*ssh_config.Empty); isComment {
 				newASTHost.Nodes = append(newASTHost.Nodes, node)
@@ -223,13 +222,11 @@ func (m *Manager) registerInclude(includePath string) error {
 		}
 	}
 
-	// Decode the include line using parser to create the correct node type cleanly
 	decoded, err := ssh_config.Decode(strings.NewReader("Include " + relPath + "\n"))
 	if err != nil || len(decoded.Hosts) == 0 {
 		return fmt.Errorf("failed to generate include AST node: %w", err)
 	}
 
-	// Insert Include block at the very top of the primary config's Host list
 	primaryCfg.Hosts = append([]*ssh_config.Host{decoded.Hosts[0]}, primaryCfg.Hosts...)
 	return m.SaveFile(m.PrimaryPath)
 }

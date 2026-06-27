@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -50,7 +51,6 @@ func (m *Manager) Load() error {
 // It automatically resolves wildcard settings for each specific host.
 func (m *Manager) GetHosts() []*Host {
 	var hosts []*Host
-	// We gather global wildcard configs to perform inheritance resolution later.
 	globalConfig := m.buildGlobalConfig()
 
 	for _, filePath := range m.FileOrder {
@@ -60,7 +60,7 @@ func (m *Manager) GetHosts() []*Host {
 		}
 
 		for _, astHost := range cfg.Hosts {
-			// Skip the implicit default "Host *" block added by the parser
+			// why: the parser injects a default implicit host block that we do not want to display
 			val := reflect.ValueOf(astHost)
 			if val.Kind() == reflect.Pointer && !val.IsNil() {
 				elem := val.Elem()
@@ -70,7 +70,6 @@ func (m *Manager) GetHosts() []*Host {
 				}
 			}
 
-			// Extract all aliases defined in this Host block.
 			for _, pat := range astHost.Patterns {
 				alias := pat.String()
 				if alias == "" {
@@ -85,26 +84,20 @@ func (m *Manager) GetHosts() []*Host {
 					Properties: make(map[string]string),
 				}
 
-				// Extract explicit key-value properties from the host block's nodes.
 				for _, node := range astHost.Nodes {
 					if kv, ok := node.(*ssh_config.KV); ok {
 						h.Properties[kv.Key] = kv.Value
 					}
 				}
 
-				// Map critical properties to top-level fields for convenience.
 				h.Name = h.Properties["HostName"]
 				h.User = h.Properties["User"]
 				h.Port = h.Properties["Port"]
 				h.IdentityFile = h.Properties["IdentityFile"]
 
-				// Resolve final values using global OpenSSH inheritance.
 				h.ResolvedProperties = make(map[string]string)
-				for k, v := range h.Properties {
-					h.ResolvedProperties[k] = v
-				}
+				maps.Copy(h.ResolvedProperties, h.Properties)
 
-				// Inject inherited properties from matching wildcard blocks.
 				if !isWildcard && globalConfig != nil {
 					for _, key := range []string{keyHostName, keyUser, keyPort, keyIdentityFile, keyForwardAgent, keyProxyJump} {
 						if _, explicit := h.Properties[key]; !explicit {
@@ -115,7 +108,6 @@ func (m *Manager) GetHosts() []*Host {
 					}
 				}
 
-				// Update resolved shortcuts.
 				if h.Name == "" && h.ResolvedProperties[keyHostName] != "" {
 					h.Name = h.ResolvedProperties[keyHostName]
 				}
@@ -150,7 +142,7 @@ func (m *Manager) loadPath(path string, depth int) error {
 	f, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		if os.IsNotExist(err) && path == m.PrimaryPath {
-			// If primary file doesn't exist, we start with a clean empty config
+			// why: if primary file doesn't exist, we start with a clean empty config
 			m.Configs[path] = &ssh_config.Config{Hosts: []*ssh_config.Host{}}
 			return nil
 		}
@@ -167,7 +159,6 @@ func (m *Manager) loadPath(path string, depth int) error {
 
 	m.Configs[path] = cfg
 
-	// Scan AST nodes to discover and parse any Include directives.
 	for _, astHost := range cfg.Hosts {
 		for _, node := range astHost.Nodes {
 			if incl, ok := node.(*ssh_config.Include); ok {
@@ -208,7 +199,6 @@ func (m *Manager) resolveAndLoadIncludes(pattern string, depth int) {
 		}
 
 		if err := m.loadPath(absMatch, depth); err == nil {
-			// Track order of newly discovered files.
 			found := slices.Contains(m.FileOrder, absMatch)
 			if !found {
 				m.FileOrder = append(m.FileOrder, absMatch)

@@ -30,7 +30,7 @@ func (m *Manager) EnsureFirstRunBackup() error {
 	metaPath := filepath.Join(backupDir, "metadata.json")
 
 	if _, err := os.Stat(metaPath); err == nil {
-		return nil // backup already exists
+		return nil
 	}
 
 	var existingFiles []string
@@ -43,7 +43,7 @@ func (m *Manager) EnsureFirstRunBackup() error {
 		}
 	}
 
-	// enforce secure, user-only read/write access to the backup folder
+	// why: openssh configuration backups must remain user-accessible only for security
 	if err := os.MkdirAll(backupDir, 0700); err != nil {
 		return fmt.Errorf("failed to create backup directory: %w", err)
 	}
@@ -73,7 +73,7 @@ func (m *Manager) EnsureFirstRunBackup() error {
 		return fmt.Errorf("failed to marshal backup metadata: %w", err)
 	}
 
-	// enforce secure user-only access on the metadata file
+	// why: metadata file stores sensitive backup paths and must be restricted
 	if err := os.WriteFile(metaPath, metaBytes, 0600); err != nil {
 		return fmt.Errorf("failed to write backup metadata: %w", err)
 	}
