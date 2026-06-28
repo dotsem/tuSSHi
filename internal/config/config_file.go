@@ -28,7 +28,6 @@ func (m *Manager) AddConfigFile(targetPath string) error {
 		return err
 	}
 
-	// write a simple marker comment to represent a blank config file
 	if err := os.WriteFile(absTarget, []byte("# SSH config file created by tusshi\n"), 0600); err != nil {
 		return err
 	}

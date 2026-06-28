@@ -31,23 +31,19 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 		m.FormHost.IdentityFile = selected.IdentityFile
 		m.FormDestFile = selected.SourceFile
 
-		// Pre-populate advanced fields
 		m.FormProxyJump = selected.Properties["ProxyJump"]
 		if agent, ok := selected.Properties["ForwardAgent"]; ok {
 			m.FormForwardAgent = agent
 		}
 	}
 
-	// Build destination options for file selector
 	var fileOptions []huh.Option[string]
 	for _, f := range m.Manager.FileOrder {
 		fileOptions = append(fileOptions, huh.NewOption(filepath.Base(f), f))
 	}
 
-	// Create dynamic steps
 	var groups []*huh.Group
 
-	// Step 1: If creating and "All" tab is active, show file selection
 	if m.FormAction == actionAdd && (defaultFile == tabAll || defaultFile == "") {
 		groups = append(groups, huh.NewGroup(
 			huh.NewSelect[string]().
@@ -58,7 +54,6 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 		))
 	}
 
-	// Step 2: Core Connection Properties
 	groups = append(groups, huh.NewGroup(
 		huh.NewInput().
 			Title("Alias / Connection Name").
@@ -83,7 +78,6 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 			Value(&m.FormHost.Port),
 	))
 
-	// Step 3: Advanced Options (IdentityFile, ProxyJump, ForwardAgent)
 	groups = append(groups, huh.NewGroup(
 		huh.NewInput().
 			Title("Identity File Path").
@@ -105,7 +99,6 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 			Value(&m.FormForwardAgent),
 	))
 
-	// Construct the final beautiful form
 	form := huh.NewForm(groups...).
 		WithTheme(huh.ThemeCharm()).
 		WithWidth(60).

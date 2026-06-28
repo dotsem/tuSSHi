@@ -16,7 +16,7 @@ func ValidateAlias(str string) error {
 	if str == "" {
 		return errors.New("alias is required")
 	}
-	if len(strings.Split(str, " ")) > 1 {
+	if strings.Contains(str, " ") {
 		return errors.New("alias cannot contain spaces")
 	}
 	if forbiddenAliasChars.MatchString(str) {
@@ -30,7 +30,7 @@ func ValidateConfigName(str string) error {
 	if str == "" {
 		return errors.New("config name is required")
 	}
-	if len(strings.Split(str, " ")) > 1 {
+	if strings.Contains(str, " ") {
 		return errors.New("config name cannot contain spaces")
 	}
 	if forbiddenConfigNameChars.MatchString(str) {

@@ -37,7 +37,7 @@ Host 10.200.1.46
 	assert.NoError(t, err)
 
 	hosts := mgr.GetHosts()
-	// Total hosts: Host *, prod-web-01, 10.200.1.46
+	// total hosts: Host *, prod-web-01, 10.200.1.46
 	assert.Len(t, hosts, 3)
 
 	var wildcardHost, prodHost, dbHost *Host
@@ -56,17 +56,17 @@ Host 10.200.1.46
 	assert.True(t, wildcardHost.IsWildcard)
 	assert.Equal(t, "default_user", wildcardHost.User)
 
-	// Verify prodHost details and explicit key mapping
+	// verify prodHost details and explicit key mapping
 	assert.NotNil(t, prodHost)
 	assert.False(t, prodHost.IsWildcard)
 	assert.Equal(t, "10.200.1.45", prodHost.Name)
 	assert.Equal(t, "deploy", prodHost.User)
 	assert.Equal(t, "~/.ssh/keys/work_rsa", prodHost.IdentityFile)
-	// Verify prodHost inherited port 2222 from wildcard Host *
+	// verify prodHost inherited port 2222 from wildcard Host *
 	assert.Equal(t, "2222", prodHost.ResolvedProperties["Port"])
 	assert.Equal(t, "yes", prodHost.ResolvedProperties[keyForwardAgent])
 
-	// Verify dbHost does not have alias (its alias is the IP itself)
+	// verify dbHost does not have alias (its alias is the IP itself)
 	assert.NotNil(t, dbHost)
 	assert.Equal(t, "10.200.1.46", dbHost.Alias)
 	// dbHost should inherit User, Port, and ForwardAgent from wildcard
@@ -136,7 +136,7 @@ Host my-host
 	err = mgr.AddHost(primaryPath, newHost)
 	assert.NoError(t, err)
 
-	// Reload to verify write
+	// reload to verify write
 	mgr2 := NewManager(primaryPath)
 	err = mgr2.Load()
 	assert.NoError(t, err)
@@ -169,7 +169,7 @@ Host my-host
 	err = mgr2.UpdateHost("added-host", updatedHost)
 	assert.NoError(t, err)
 
-	// Reload to verify update
+	// reload to verify update
 	mgr3 := NewManager(primaryPath)
 	err = mgr3.Load()
 	assert.NoError(t, err)
@@ -193,7 +193,7 @@ Host my-host
 	err = mgr3.DeleteHost("added-host-new")
 	assert.NoError(t, err)
 
-	// Reload to verify delete
+	// reload to verify delete
 	mgr4 := NewManager(primaryPath)
 	err = mgr4.Load()
 	assert.NoError(t, err)
@@ -213,13 +213,13 @@ func TestManagerConfigFileCRUD(t *testing.T) {
 
 	subPath := filepath.Join(tmpDir, "sub-config")
 
-	// 1. Add Config File
+	// 1. add config file
 	err = mgr.AddConfigFile(subPath)
 	assert.NoError(t, err)
 	assert.FileExists(t, subPath)
 	assert.Contains(t, mgr.FileOrder, subPath)
 
-	// Check if Include directive is added in primary
+	// check if Include directive is added in primary
 	// #nosec G304
 	primaryContent, err := os.ReadFile(primaryPath)
 	assert.NoError(t, err)
@@ -227,7 +227,7 @@ func TestManagerConfigFileCRUD(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, string(primaryContent), "Include "+relSub)
 
-	// 2. Rename Config File
+	// 2. rename config file
 	renamedPath := filepath.Join(tmpDir, "renamed-config")
 	err = mgr.RenameConfigFile(subPath, renamedPath)
 	assert.NoError(t, err)
@@ -236,7 +236,7 @@ func TestManagerConfigFileCRUD(t *testing.T) {
 	assert.Contains(t, mgr.FileOrder, renamedPath)
 	assert.NotContains(t, mgr.FileOrder, subPath)
 
-	// Check if Include is updated in primary
+	// check if Include is updated in primary
 	// #nosec G304
 	primaryContent2, err := os.ReadFile(primaryPath)
 	assert.NoError(t, err)
@@ -245,7 +245,7 @@ func TestManagerConfigFileCRUD(t *testing.T) {
 	assert.Contains(t, string(primaryContent2), "Include "+relRenamed)
 	assert.NotContains(t, string(primaryContent2), "Include "+relSub)
 
-	// 3. Prevent deleting if connections are present
+	// 3. prevent deleting if connections are present
 	h := &Host{
 		Alias: "test-host",
 		Name:  "127.0.0.1",
@@ -257,17 +257,17 @@ func TestManagerConfigFileCRUD(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "connections are still present")
 
-	// Delete host first
+	// delete host first
 	err = mgr.DeleteHost("test-host")
 	assert.NoError(t, err)
 
-	// 4. Delete Config File successfully when no connections are present
+	// 4. delete config file successfully when no connections are present
 	err = mgr.DeleteConfigFile(renamedPath)
 	assert.NoError(t, err)
 	assert.NoFileExists(t, renamedPath)
 	assert.NotContains(t, mgr.FileOrder, renamedPath)
 
-	// Check if Include is removed from primary
+	// check if Include is removed from primary
 	// #nosec G304
 	primaryContent3, err := os.ReadFile(primaryPath)
 	assert.NoError(t, err)

@@ -22,7 +22,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case SSHFinishedMsg:
-		// SSH terminated; clear screen and restore terminal
 		if msg.Err != nil {
 			m.ErrorText = fmt.Sprintf("SSH session error: %v", msg.Err)
 		} else {
@@ -46,12 +45,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Type == tea.KeyCtrlC {
 			return m, tea.Quit
 		}
-		// Reset temporary notifications on keypress
 		m.AlertText = ""
 		m.ErrorText = ""
 	}
 
-	// Delegate to active overlay component if one is open
 	if m.ActiveComponent != nil {
 		var activeCmd tea.Cmd
 		activeCmd, done := m.ActiveComponent.Update(msg)
@@ -62,12 +59,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, activeCmd
 	}
 
-	// Delegate based on active mode
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		return m.handleKeyMsg(msg)
 	}
 
-	// Forward non-key messages (such as blink timers) to active text inputs
 	switch m.Mode {
 	case ModeSearch:
 		var searchCmd tea.Cmd
@@ -106,7 +101,6 @@ func (m *Model) navigateTabs(direction int) {
 func (m *Model) executeFormSubmit() {
 	var err error
 
-	// Map advanced properties to the FormHost structure
 	m.FormHost.SourceFile = m.FormDestFile
 	if m.FormProxyJump != "" {
 		m.FormHost.Properties["ProxyJump"] = m.FormProxyJump

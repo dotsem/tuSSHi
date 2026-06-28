@@ -31,7 +31,7 @@ func TestEnsureFirstRunBackup(t *testing.T) {
 		backupDir := filepath.Join(tmpDir, "pre-tusshi")
 		assert.DirExists(t, backupDir)
 
-		// check folder permissions (must be 0700 on Unix)
+		// check folder permissions (must be 0700 on unix)
 		info, err := os.Stat(backupDir)
 		assert.NoError(t, err)
 		assert.Equal(t, os.ModeDir|0700, info.Mode().Perm()|os.ModeDir)

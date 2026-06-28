@@ -26,7 +26,7 @@ type PingResultMsg struct {
 	Latency float64
 }
 
-// Limit concurrency to 15 to avoid fd exhaustion or firewall bans.
+// why: limit concurrency to 15 to avoid fd exhaustion or firewall bans
 var pingSemaphore = make(chan struct{}, 15)
 
 // PingHost performs a non-blocking TCP dial check against the host.
