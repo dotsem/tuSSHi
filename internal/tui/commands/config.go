@@ -69,15 +69,8 @@ func RenameConfig(mgr *config.Manager, parts []string) func(Context) {
 			return
 		}
 
-		var oldPath string
-		for _, file := range mgr.FileOrder {
-			if file == oldName || filepath.Base(file) == oldName || strings.TrimSuffix(filepath.Base(file), filepath.Ext(file)) == oldName {
-				oldPath = file
-				break
-			}
-		}
-
-		if oldPath == "" {
+		oldPath, found := mgr.FindConfigFile(oldName)
+		if !found {
 			ctx.SetError(fmt.Sprintf("Config file %q not found", oldName))
 			return
 		}
@@ -122,15 +115,8 @@ func DeleteConfig(mgr *config.Manager, parts []string) func(Context) {
 			targetName = activeTab
 		}
 
-		var targetPath string
-		for _, file := range mgr.FileOrder {
-			if file == targetName || filepath.Base(file) == targetName || strings.TrimSuffix(filepath.Base(file), filepath.Ext(file)) == targetName {
-				targetPath = file
-				break
-			}
-		}
-
-		if targetPath == "" {
+		targetPath, found := mgr.FindConfigFile(targetName)
+		if !found {
 			ctx.SetError(fmt.Sprintf("Config file %q not found", targetName))
 			return
 		}

@@ -228,3 +228,14 @@ func expandTilde(path string) string {
 	}
 	return path
 }
+
+// FindConfigFile searches FileOrder for a path matching the given name,
+// base name, or extensionless nickname.
+func (m *Manager) FindConfigFile(name string) (string, bool) {
+	for _, file := range m.FileOrder {
+		if file == name || filepath.Base(file) == name || strings.TrimSuffix(filepath.Base(file), filepath.Ext(file)) == name {
+			return file, true
+		}
+	}
+	return "", false
+}
