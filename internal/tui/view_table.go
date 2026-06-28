@@ -132,32 +132,14 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 	var cells []string
 
 	alias := truncate(h.Alias, wAlias)
-	var aliasStyle lipgloss.Style
-	if rowActive {
-		aliasStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("255")).Bold(true)
-	} else {
-		aliasStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("252"))
-	}
-	cells = append(cells, renderCell(alias, aliasStyle, rowActive, wAlias))
+	cells = append(cells, renderCell(alias, rowCellStyle(rowActive, "252"), rowActive, wAlias))
 
 	name := truncate(h.Name, wName)
-	var nameStyle lipgloss.Style
-	if rowActive {
-		nameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("255")).Bold(true)
-	} else {
-		nameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("250"))
-	}
-	cells = append(cells, renderCell(name, nameStyle, rowActive, wName))
+	cells = append(cells, renderCell(name, rowCellStyle(rowActive, "250"), rowActive, wName))
 
 	if wUser > 0 {
 		user := truncate(h.User, wUser)
-		var userStyle lipgloss.Style
-		if rowActive {
-			userStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("255")).Bold(true)
-		} else {
-			userStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
-		}
-		cells = append(cells, renderCell(user, userStyle, rowActive, wUser))
+		cells = append(cells, renderCell(user, rowCellStyle(rowActive, "245"), rowActive, wUser))
 	}
 
 	if wPort > 0 {
@@ -166,26 +148,14 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 			port = "22"
 		}
 		port = truncate(port, wPort)
-		var portStyle lipgloss.Style
-		if rowActive {
-			portStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("255")).Bold(true)
-		} else {
-			portStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("242"))
-		}
-		cells = append(cells, renderCell(port, portStyle, rowActive, wPort))
+		cells = append(cells, renderCell(port, rowCellStyle(rowActive, "242"), rowActive, wPort))
 	}
 
 	if wConfig > 0 {
 		cfgNickname := strings.TrimSuffix(GetTabLabel(h.SourceFile), ".conf")
 		cfgNickname = strings.TrimSuffix(cfgNickname, "config")
 		cfgNickname = truncate(cfgNickname, wConfig)
-		var cfgStyle lipgloss.Style
-		if rowActive {
-			cfgStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("255")).Bold(true)
-		} else {
-			cfgStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-		}
-		cells = append(cells, renderCell(cfgNickname, cfgStyle, rowActive, wConfig))
+		cells = append(cells, renderCell(cfgNickname, rowCellStyle(rowActive, "240"), rowActive, wConfig))
 	}
 
 	if wStatus > 0 {
@@ -219,4 +189,11 @@ func truncate(s string, w int) string {
 		return string(runes[:w])
 	}
 	return s
+}
+
+func rowCellStyle(rowActive bool, normalColor string) lipgloss.Style {
+	if rowActive {
+		return lipgloss.NewStyle().Foreground(lipgloss.Color("255")).Bold(true)
+	}
+	return lipgloss.NewStyle().Foreground(lipgloss.Color(normalColor))
 }
