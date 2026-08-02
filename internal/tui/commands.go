@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"tusshi/internal/config"
 	"tusshi/internal/tui/commands"
 	"tusshi/internal/tui/components"
 	"tusshi/internal/tui/theme"
@@ -24,6 +25,8 @@ const (
 	deleteConfigCmd = "rmconf, delete-config"
 	pingCmd         = "p, ping"
 	pingAllCmd      = "P, pingall"
+	tagCmd          = "tag"
+	untagCmd        = "untag"
 )
 
 // helpOptions centralizes all interactive command shortcuts and their help text
@@ -32,6 +35,8 @@ var helpOptions = []components.HelpOption{
 	{Shortcut: editCmd, Description: "Edit selected connection"},
 	{Shortcut: deleteCmd, Description: "Delete selected connection"},
 	{Shortcut: moveCmd, Description: "Move connection to a file/tab"},
+	{Shortcut: tagCmd, Description: "Add tags to connection (:tag [alias] <tags...>)"},
+	{Shortcut: untagCmd, Description: "Remove tags from connection (:untag [alias] <tags...>)"},
 	{Shortcut: pingCmd, Description: "Ping selected connection"},
 	{Shortcut: pingAllCmd, Description: "Ping all connections"},
 	{Shortcut: addConfigCmd, Description: "Add a new config file"},
@@ -176,6 +181,20 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 
 	case matchesCommand(cmd, deleteConfigCmd):
 		action = commands.DeleteConfig(m.Manager, parts)
+
+	case matchesCommand(cmd, tagCmd):
+		var selected *config.Host
+		if len(m.Filtered) > 0 {
+			selected = m.Filtered[m.SelectedIndex]
+		}
+		action = commands.Tag(m.Manager, selected, parts)
+
+	case matchesCommand(cmd, untagCmd):
+		var selected *config.Host
+		if len(m.Filtered) > 0 {
+			selected = m.Filtered[m.SelectedIndex]
+		}
+		action = commands.Untag(m.Manager, selected, parts)
 
 	default:
 		m.ErrorText = "Unknown command: " + cmd

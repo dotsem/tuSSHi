@@ -24,6 +24,16 @@ var (
 			Foreground(theme.Global.Muted).
 			Padding(0, 2)
 
+	TagTabActive = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("255")).
+			Background(theme.Global.Secondary).
+			Bold(true).
+			Padding(0, 2)
+
+	TagTabInactive = lipgloss.NewStyle().
+			Foreground(theme.Global.Secondary).
+			Padding(0, 2)
+
 	Header = lipgloss.NewStyle().
 		Padding(0, 1)
 

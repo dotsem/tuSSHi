@@ -2,6 +2,7 @@ package tui
 
 import (
 	"path/filepath"
+	"strings"
 
 	"tusshi/internal/config"
 	"tusshi/internal/validation"
@@ -20,6 +21,7 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 	m.FormDestFile = defaultFile
 	m.FormProxyJump = ""
 	m.FormForwardAgent = "no"
+	m.FormTagsString = ""
 
 	if m.FormAction == actionEdit && m.SelectedIndex < len(m.Filtered) {
 		selected := m.Filtered[m.SelectedIndex]
@@ -30,6 +32,7 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 		m.FormHost.Port = selected.Port
 		m.FormHost.IdentityFile = selected.IdentityFile
 		m.FormDestFile = selected.SourceFile
+		m.FormTagsString = strings.Join(selected.Tags, ", ")
 
 		m.FormProxyJump = selected.Properties["ProxyJump"]
 		if agent, ok := selected.Properties["ForwardAgent"]; ok {
@@ -79,6 +82,11 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 	))
 
 	groups = append(groups, huh.NewGroup(
+		huh.NewInput().
+			Title("Tags").
+			Description("Metadata tags (comma, space, or # hashtag separated)").
+			Placeholder("production, database, aws").
+			Value(&m.FormTagsString),
 		huh.NewInput().
 			Title("Identity File Path").
 			Description("Private key path (e.g. ~/.ssh/id_rsa)").

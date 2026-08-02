@@ -10,9 +10,9 @@ This document outlines the planned design improvements, features, and core focus
 - [x] Interactive status column displaying **Online (latency in ms)** or **Offline**.
 
 ### Native Tagging via Lossless Comments
-- [ ] Lossless parser support for custom hashtag metadata inside standard configuration comments (e.g., `# tags: production, database, aws`).
-- [ ] Indexing tags on load to enable query filtering in the search input (e.g., `tag:production` or `#aws`).
-- [ ] Categorized TUI views or tab structures based on tag groups.
+- [x] Lossless parser support for custom hashtag metadata inside standard configuration comments (e.g., `# tags: production, database, aws`).
+- [x] Indexing tags on load to enable query filtering in the search input (e.g., `tag:production` or `#aws`).
+- [x] Categorized TUI views or tab structures based on tag groups.
 
 ---
 

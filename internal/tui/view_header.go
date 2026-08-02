@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"strings"
 	"tusshi/internal/tui/style"
 
 	"github.com/charmbracelet/lipgloss"
@@ -11,10 +12,19 @@ func (m *Model) renderHeader() string {
 	var tabs []string
 	for _, t := range m.Tabs {
 		label := GetTabLabel(t)
+		isTag := strings.HasPrefix(t, "#")
 		if t == m.ActiveTab {
-			tabs = append(tabs, style.TabActive.Render(label))
+			if isTag {
+				tabs = append(tabs, style.TagTabActive.Render(label))
+			} else {
+				tabs = append(tabs, style.TabActive.Render(label))
+			}
 		} else {
-			tabs = append(tabs, style.TabInactive.Render(label))
+			if isTag {
+				tabs = append(tabs, style.TagTabInactive.Render(label))
+			} else {
+				tabs = append(tabs, style.TabInactive.Render(label))
+			}
 		}
 	}
 

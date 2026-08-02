@@ -57,6 +57,9 @@ func (m *Manager) AddHost(targetFile string, h *Host) error {
 	}
 
 	if newASTHost != nil {
+		if err := UpdateASTHostTags(newASTHost, h.Tags); err != nil {
+			return err
+		}
 		cfg.Hosts = append(cfg.Hosts, newASTHost)
 	}
 	return m.SaveFile(absTarget)
@@ -118,6 +121,9 @@ func (m *Manager) UpdateHost(originalAlias string, h *Host) error {
 			if _, isComment := node.(*ssh_config.Empty); isComment {
 				newASTHost.Nodes = append(newASTHost.Nodes, node)
 			}
+		}
+		if err := UpdateASTHostTags(newASTHost, h.Tags); err != nil {
+			return err
 		}
 		targetCfg.Hosts[targetIdx] = newASTHost
 	}

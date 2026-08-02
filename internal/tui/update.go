@@ -3,6 +3,8 @@ package tui
 import (
 	"fmt"
 
+	"tusshi/internal/config"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -102,6 +104,7 @@ func (m *Model) executeFormSubmit() {
 	var err error
 
 	m.FormHost.SourceFile = m.FormDestFile
+	m.FormHost.Tags = config.ExtractTagsFromComment("# tags: " + m.FormTagsString)
 	if m.FormProxyJump != "" {
 		m.FormHost.Properties["ProxyJump"] = m.FormProxyJump
 	} else {

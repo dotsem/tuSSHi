@@ -16,23 +16,51 @@ func (m *Model) renderTable(width, maxHeight int) string {
 	}
 
 	var headerRow, dividerRow string
-	var wAlias, wName, wUser, wPort, wStatus, wConfig int
+	var wAlias, wName, wUser, wPort, wStatus, wConfig, wTags int
 
 	switch {
-	case width >= 85:
-		wTotal := max(width-14, 10)
+	case width >= 90:
+		wTotal := max(width-16, 10)
 		wAlias = int(float64(wTotal) * 0.15)
-		wName = int(float64(wTotal) * 0.30)
+		wName = int(float64(wTotal) * 0.25)
+		wUser = int(float64(wTotal) * 0.10)
+		wPort = int(float64(wTotal) * 0.07)
+		wTags = int(float64(wTotal) * 0.18)
+		wConfig = int(float64(wTotal) * 0.15)
+		wStatus = wTotal - wAlias - wName - wUser - wPort - wTags - wConfig
+
+		headerRow = fmt.Sprintf("  %-*s  %-*s  %-*s  %-*s  %-*s  %-*s  %-*s",
+			wAlias, "ALIAS",
+			wName, "NAME / ADDRESS",
+			wUser, "USER",
+			wPort, "PORT",
+			wTags, "TAGS",
+			wConfig, "CONFIG",
+			wStatus, "STATUS",
+		)
+		dividerRow = fmt.Sprintf("  %s  %s  %s  %s  %s  %s  %s",
+			strings.Repeat("─", wAlias),
+			strings.Repeat("─", wName),
+			strings.Repeat("─", wUser),
+			strings.Repeat("─", wPort),
+			strings.Repeat("─", wTags),
+			strings.Repeat("─", wConfig),
+			strings.Repeat("─", wStatus),
+		)
+	case width >= 70:
+		wTotal := max(width-14, 10)
+		wAlias = int(float64(wTotal) * 0.18)
+		wName = int(float64(wTotal) * 0.28)
 		wUser = int(float64(wTotal) * 0.12)
-		wPort = int(float64(wTotal) * 0.08)
-		wConfig = int(float64(wTotal) * 0.23)
-		wStatus = wTotal - wAlias - wName - wUser - wPort - wConfig
+		wTags = int(float64(wTotal) * 0.16)
+		wConfig = int(float64(wTotal) * 0.14)
+		wStatus = wTotal - wAlias - wName - wUser - wTags - wConfig
 
 		headerRow = fmt.Sprintf("  %-*s  %-*s  %-*s  %-*s  %-*s  %-*s",
 			wAlias, "ALIAS",
 			wName, "NAME / ADDRESS",
 			wUser, "USER",
-			wPort, "PORT",
+			wTags, "TAGS",
 			wConfig, "CONFIG",
 			wStatus, "STATUS",
 		)
@@ -40,29 +68,7 @@ func (m *Model) renderTable(width, maxHeight int) string {
 			strings.Repeat("─", wAlias),
 			strings.Repeat("─", wName),
 			strings.Repeat("─", wUser),
-			strings.Repeat("─", wPort),
-			strings.Repeat("─", wConfig),
-			strings.Repeat("─", wStatus),
-		)
-	case width >= 65:
-		wTotal := max(width-12, 10)
-		wAlias = int(float64(wTotal) * 0.20)
-		wName = int(float64(wTotal) * 0.35)
-		wUser = int(float64(wTotal) * 0.15)
-		wConfig = int(float64(wTotal) * 0.18)
-		wStatus = wTotal - wAlias - wName - wUser - wConfig
-
-		headerRow = fmt.Sprintf("  %-*s  %-*s  %-*s  %-*s  %-*s",
-			wAlias, "ALIAS",
-			wName, "NAME / ADDRESS",
-			wUser, "USER",
-			wConfig, "CONFIG",
-			wStatus, "STATUS",
-		)
-		dividerRow = fmt.Sprintf("  %s  %s  %s  %s  %s",
-			strings.Repeat("─", wAlias),
-			strings.Repeat("─", wName),
-			strings.Repeat("─", wUser),
+			strings.Repeat("─", wTags),
 			strings.Repeat("─", wConfig),
 			strings.Repeat("─", wStatus),
 		)
@@ -118,7 +124,7 @@ func (m *Model) renderTable(width, maxHeight int) string {
 
 	for idx := startIndex; idx < len(m.Filtered) && len(rows) < maxHeight; idx++ {
 		h := m.Filtered[idx]
-		rows = append(rows, m.renderRow(h, idx, wAlias, wName, wUser, wPort, wStatus, wConfig))
+		rows = append(rows, m.renderRow(h, idx, wAlias, wName, wUser, wPort, wStatus, wConfig, wTags))
 	}
 
 	return strings.Join(rows, "\n")
@@ -126,7 +132,7 @@ func (m *Model) renderTable(width, maxHeight int) string {
 
 // renderRow constructs a formatted row, applying specific colors for the status column
 // and blending background colors correctly when the row is active/selected.
-func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, wStatus, wConfig int) string {
+func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, wStatus, wConfig, wTags int) string {
 	rowActive := idx == m.SelectedIndex
 
 	var cells []string
@@ -149,6 +155,12 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 		}
 		port = truncate(port, wPort)
 		cells = append(cells, renderCell(port, rowCellStyle(rowActive, "242"), rowActive, wPort))
+	}
+
+	if wTags > 0 {
+		tagsStr := strings.Join(h.Tags, ", ")
+		tagsStr = truncate(tagsStr, wTags)
+		cells = append(cells, renderCell(tagsStr, rowCellStyle(rowActive, "244"), rowActive, wTags))
 	}
 
 	if wConfig > 0 {
