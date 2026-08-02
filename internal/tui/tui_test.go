@@ -229,3 +229,53 @@ Host srv-1
 		assert.Contains(t, cell, "●")
 	})
 }
+
+// TestTUIHostFormTags verifies that host tags are initialized and submitted in host forms.
+func TestTUIHostFormTags(t *testing.T) {
+	tmpDir := t.TempDir()
+	primaryPath := filepath.Join(tmpDir, "config")
+
+	content := `
+Host tagged-server
+    # tags: production, database
+    HostName 10.0.0.1
+    User admin
+`
+	err := os.WriteFile(primaryPath, []byte(content), 0600)
+	assert.NoError(t, err)
+
+	mgr := config.NewManager(primaryPath)
+	err = mgr.Load()
+	assert.NoError(t, err)
+
+	m := NewModel(mgr)
+
+	t.Run("edit form initializes tags", func(t *testing.T) {
+		m.FormAction = actionEdit
+		m.SelectedIndex = 0
+		_ = m.BuildHostForm(m.ActiveTab)
+		assert.Equal(t, "production, database", m.FormTagsString)
+	})
+
+	t.Run("executeFormSubmit updates host tags", func(t *testing.T) {
+		m.FormAction = actionEdit
+		m.SelectedIndex = 0
+		_ = m.BuildHostForm(m.ActiveTab)
+		m.FormTagsString = "aws, production, k8s"
+		m.executeFormSubmit()
+
+		hosts := m.Manager.GetHosts()
+		assert.Len(t, hosts, 1)
+		assert.Equal(t, []string{"aws", "production", "k8s"}, hosts[0].Tags)
+	})
+
+	t.Run("filter hosts matches tags", func(t *testing.T) {
+		m.SearchInput.SetValue("#production")
+		m.FilterHosts()
+		assert.Len(t, m.Filtered, 1)
+
+		m.SearchInput.SetValue("tag:nonexistent")
+		m.FilterHosts()
+		assert.Len(t, m.Filtered, 0)
+	})
+}

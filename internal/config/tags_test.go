@@ -106,4 +106,22 @@ func TestUpdateASTHostTags(t *testing.T) {
 		tags := ExtractTagsFromNodes(cfg.Hosts[0].Nodes)
 		assert.Empty(t, tags)
 	})
+
+	t.Run("sanitizes newlines and control characters", func(t *testing.T) {
+		line := "# tags: prod\nHost evil.com\n    User root, aws"
+		tags := ExtractTagsFromComment(line)
+		assert.Equal(t, []string{"prod", "host", "evil.com", "user", "root", "aws"}, tags)
+	})
+
+	t.Run("prunes multiple tag comment lines on update", func(t *testing.T) {
+		content := "Host test-host\n    # tags: tag1\n    HostName 127.0.0.1\n    # tags: tag2\n"
+		cfg, err := ssh_config.Decode(strings.NewReader(content))
+		assert.NoError(t, err)
+
+		err = UpdateASTHostTags(cfg.Hosts[0], []string{"merged1", "merged2"})
+		assert.NoError(t, err)
+
+		tags := ExtractTagsFromNodes(cfg.Hosts[0].Nodes)
+		assert.Equal(t, []string{"merged1", "merged2"}, tags)
+	})
 }

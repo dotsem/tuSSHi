@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"unicode"
 
 	"github.com/kevinburke/ssh_config"
 )
@@ -24,24 +25,24 @@ func ExtractTagsFromComment(line string) []string {
 	var raw []string
 	lower := strings.ToLower(trimmed)
 	if strings.HasPrefix(lower, "tags:") || strings.HasPrefix(lower, "tag:") {
-		idx := strings.Index(trimmed, ":")
-		content := trimmed[idx+1:]
+		_, after, _ := strings.Cut(trimmed, ":")
+		content := after
 		parts := strings.FieldsFunc(content, func(r rune) bool {
-			return r == ',' || r == ' ' || r == '\t'
+			return r == ',' || r == ' ' || r == '\t' || r == '\n' || r == '\r'
 		})
 		raw = append(raw, parts...)
 	} else {
-		fields := strings.Fields(trimmed)
-		for _, field := range fields {
+		fields := strings.FieldsSeq(trimmed)
+		for field := range fields {
 			if strings.HasPrefix(field, "#") {
-				raw = append(raw, strings.TrimPrefix(field, "#"))
+				raw = append(raw, field)
 			}
 		}
 	}
 
 	var tags []string
 	for _, r := range raw {
-		clean := strings.ToLower(strings.TrimSpace(strings.TrimPrefix(r, "#")))
+		clean := cleanTag(r)
 		if clean != "" && !slices.Contains(tags, clean) {
 			tags = append(tags, clean)
 		}
@@ -65,41 +66,65 @@ func ExtractTagsFromNodes(nodes []ssh_config.Node) []string {
 	return tags
 }
 
-// UpdateASTHostTags updates or inserts a tag comment node inside an AST Host block.
+// UpdateASTHostTags updates or inserts a tag comment node inside an AST Host block
+// and prunes any duplicate or stale tag comment lines.
 func UpdateASTHostTags(astHost *ssh_config.Host, tags []string) error {
 	if astHost == nil {
 		return fmt.Errorf("astHost cannot be nil")
 	}
 
-	tagIdx := -1
-	for i, node := range astHost.Nodes {
-		if empty, ok := node.(*ssh_config.Empty); ok {
-			parsed := ExtractTagsFromComment(empty.String())
-			if len(parsed) > 0 {
-				tagIdx = i
-				break
-			}
+	var sanitized []string
+	for _, t := range tags {
+		clean := cleanTag(t)
+		if clean != "" && !slices.Contains(sanitized, clean) {
+			sanitized = append(sanitized, clean)
 		}
 	}
 
-	if len(tags) == 0 {
-		if tagIdx != -1 {
-			astHost.Nodes = append(astHost.Nodes[:tagIdx], astHost.Nodes[tagIdx+1:]...)
+	firstTagIdx := -1
+	var filteredNodes []ssh_config.Node
+	for i, node := range astHost.Nodes {
+		if empty, ok := node.(*ssh_config.Empty); ok {
+			if len(ExtractTagsFromComment(empty.String())) > 0 {
+				if firstTagIdx == -1 {
+					firstTagIdx = i
+				}
+				continue
+			}
 		}
+		filteredNodes = append(filteredNodes, node)
+	}
+
+	if len(sanitized) == 0 {
+		astHost.Nodes = filteredNodes
 		return nil
 	}
 
-	newNode, err := createTagCommentNode(tags)
+	newNode, err := createTagCommentNode(sanitized)
 	if err != nil {
 		return err
 	}
 
-	if tagIdx != -1 {
-		astHost.Nodes[tagIdx] = newNode
+	if firstTagIdx != -1 && firstTagIdx <= len(filteredNodes) {
+		filteredNodes = slices.Insert(filteredNodes, firstTagIdx, newNode)
 	} else {
-		astHost.Nodes = append([]ssh_config.Node{newNode}, astHost.Nodes...)
+		filteredNodes = append([]ssh_config.Node{newNode}, filteredNodes...)
 	}
+
+	astHost.Nodes = filteredNodes
 	return nil
+}
+
+func cleanTag(s string) string {
+	s = strings.Map(func(r rune) rune {
+		if r == '\n' || r == '\r' || r == '\x00' || !unicode.IsPrint(r) {
+			return -1
+		}
+		return r
+	}, s)
+	s = strings.TrimSpace(s)
+	s = strings.TrimLeft(s, "#")
+	return strings.ToLower(strings.TrimSpace(s))
 }
 
 func createTagCommentNode(tags []string) (ssh_config.Node, error) {

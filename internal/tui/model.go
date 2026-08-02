@@ -51,6 +51,7 @@ type Model struct {
 	FormDestFile      string
 	FormProxyJump     string
 	FormForwardAgent  string
+	FormTagsString    string
 
 	// Alerts
 	AlertText string
@@ -174,7 +175,17 @@ func (m *Model) FilterHosts() {
 		nameMatch := strings.Contains(strings.ToLower(h.Name), searchQ)
 		userMatch := strings.Contains(strings.ToLower(h.User), searchQ)
 
-		if searchQ == "" || aliasMatch || nameMatch || userMatch {
+		tagMatch := false
+		cleanTagQ := strings.TrimPrefix(searchQ, "#")
+		cleanTagQ = strings.TrimPrefix(cleanTagQ, "tag:")
+		for _, tag := range h.Tags {
+			if strings.Contains(strings.ToLower(tag), cleanTagQ) {
+				tagMatch = true
+				break
+			}
+		}
+
+		if searchQ == "" || aliasMatch || nameMatch || userMatch || tagMatch {
 			filtered = append(filtered, h)
 		}
 	}
