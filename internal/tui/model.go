@@ -2,6 +2,7 @@ package tui
 
 import (
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"tusshi/internal/config"
@@ -142,6 +143,19 @@ func (m *Model) Reload() {
 		m.Tabs = append(m.Tabs, f)
 	}
 
+	var tagList []string
+	for _, h := range m.Hosts {
+		for _, tag := range h.Tags {
+			if !slices.Contains(tagList, tag) {
+				tagList = append(tagList, tag)
+			}
+		}
+	}
+	slices.Sort(tagList)
+	for _, tag := range tagList {
+		m.Tabs = append(m.Tabs, "#"+tag)
+	}
+
 	tabValid := false
 	for _, t := range m.Tabs {
 		if t == m.ActiveTab {
@@ -162,8 +176,15 @@ func (m *Model) FilterHosts() {
 	searchQ := strings.ToLower(m.SearchInput.Value())
 
 	for _, h := range m.Hosts {
-		if m.ActiveTab != "All" && h.SourceFile != m.ActiveTab {
-			continue
+		if m.ActiveTab != tabAll {
+			if after, ok := strings.CutPrefix(m.ActiveTab, "#"); ok {
+				targetTag := after
+				if !slices.Contains(h.Tags, targetTag) {
+					continue
+				}
+			} else if h.SourceFile != m.ActiveTab {
+				continue
+			}
 		}
 
 		// why: wildcard configs (e.g. Host *) are metadata, not connectable hosts
@@ -200,10 +221,13 @@ func (m *Model) FilterHosts() {
 	}
 }
 
-// GetTabLabel returns a clean display label (filename) for a config tab path.
+// GetTabLabel returns a clean display label (filename or tag) for a tab.
 func GetTabLabel(tabPath string) string {
 	if tabPath == tabAll {
 		return tabAll
+	}
+	if strings.HasPrefix(tabPath, "#") {
+		return tabPath
 	}
 	return filepath.Base(tabPath)
 }

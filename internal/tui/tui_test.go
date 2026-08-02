@@ -278,4 +278,19 @@ Host tagged-server
 		m.FilterHosts()
 		assert.Len(t, m.Filtered, 0)
 	})
+
+	t.Run("tag category tabs discovered and active tag tab filters hosts", func(t *testing.T) {
+		m.SearchInput.SetValue("")
+		assert.Contains(t, m.Tabs, "#production")
+		assert.Contains(t, m.Tabs, "#database")
+
+		m.ActiveTab = "#database"
+		m.FilterHosts()
+		assert.Len(t, m.Filtered, 1)
+		assert.Equal(t, "tagged-server", m.Filtered[0].Alias)
+
+		m.ActiveTab = "#nonexistent"
+		m.FilterHosts()
+		assert.Len(t, m.Filtered, 0)
+	})
 }

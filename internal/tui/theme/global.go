@@ -17,7 +17,7 @@ var Global = Theme{
 
 const (
 	primary   = lipgloss.Color("#FF5500")
-	secondary = lipgloss.Color("#1F1F1F")
+	secondary = lipgloss.Color("#A15101")
 	muted     = lipgloss.Color("#757575")
 	bg        = lipgloss.Color("#121212")
 	success   = lipgloss.Color("#FF7851")
