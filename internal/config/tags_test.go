@@ -61,12 +61,11 @@ Host staging-web
 	cfg, err := ssh_config.Decode(strings.NewReader(configContent))
 	assert.NoError(t, err)
 
-	assert.Len(t, cfg.Hosts, 2)
-
-	tagsDB := ExtractTagsFromNodes(cfg.Hosts[0].Nodes)
+	// ssh_config injects an implicit default host at index 0; explicit hosts start at index 1
+	tagsDB := ExtractTagsFromNodes(cfg.Hosts[1].Nodes)
 	assert.Equal(t, []string{"production", "database"}, tagsDB)
 
-	tagsWeb := ExtractTagsFromNodes(cfg.Hosts[1].Nodes)
+	tagsWeb := ExtractTagsFromNodes(cfg.Hosts[2].Nodes)
 	assert.Equal(t, []string{"staging", "frontend"}, tagsWeb)
 }
 
@@ -76,10 +75,10 @@ func TestUpdateASTHostTags(t *testing.T) {
 		cfg, err := ssh_config.Decode(strings.NewReader(content))
 		assert.NoError(t, err)
 
-		err = UpdateASTHostTags(cfg.Hosts[0], []string{"web", "prod"})
+		err = UpdateASTHostTags(cfg.Hosts[1], []string{"web", "prod"})
 		assert.NoError(t, err)
 
-		tags := ExtractTagsFromNodes(cfg.Hosts[0].Nodes)
+		tags := ExtractTagsFromNodes(cfg.Hosts[1].Nodes)
 		assert.Equal(t, []string{"web", "prod"}, tags)
 	})
 
@@ -88,10 +87,10 @@ func TestUpdateASTHostTags(t *testing.T) {
 		cfg, err := ssh_config.Decode(strings.NewReader(content))
 		assert.NoError(t, err)
 
-		err = UpdateASTHostTags(cfg.Hosts[0], []string{"new1", "new2"})
+		err = UpdateASTHostTags(cfg.Hosts[1], []string{"new1", "new2"})
 		assert.NoError(t, err)
 
-		tags := ExtractTagsFromNodes(cfg.Hosts[0].Nodes)
+		tags := ExtractTagsFromNodes(cfg.Hosts[1].Nodes)
 		assert.Equal(t, []string{"new1", "new2"}, tags)
 	})
 
@@ -100,10 +99,10 @@ func TestUpdateASTHostTags(t *testing.T) {
 		cfg, err := ssh_config.Decode(strings.NewReader(content))
 		assert.NoError(t, err)
 
-		err = UpdateASTHostTags(cfg.Hosts[0], nil)
+		err = UpdateASTHostTags(cfg.Hosts[1], nil)
 		assert.NoError(t, err)
 
-		tags := ExtractTagsFromNodes(cfg.Hosts[0].Nodes)
+		tags := ExtractTagsFromNodes(cfg.Hosts[1].Nodes)
 		assert.Empty(t, tags)
 	})
 
@@ -118,10 +117,10 @@ func TestUpdateASTHostTags(t *testing.T) {
 		cfg, err := ssh_config.Decode(strings.NewReader(content))
 		assert.NoError(t, err)
 
-		err = UpdateASTHostTags(cfg.Hosts[0], []string{"merged1", "merged2"})
+		err = UpdateASTHostTags(cfg.Hosts[1], []string{"merged1", "merged2"})
 		assert.NoError(t, err)
 
-		tags := ExtractTagsFromNodes(cfg.Hosts[0].Nodes)
+		tags := ExtractTagsFromNodes(cfg.Hosts[1].Nodes)
 		assert.Equal(t, []string{"merged1", "merged2"}, tags)
 	})
 }
