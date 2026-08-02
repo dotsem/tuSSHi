@@ -29,6 +29,9 @@ type Host struct {
 	// (e.g., "Host *") rather than a specific destination connection.
 	IsWildcard bool
 
+	// Tags holds custom metadata tags extracted losslessly from host comments.
+	Tags []string
+
 	// Properties stores all configuration parameters explicitly defined under this host
 	// block as key-value pairs (e.g., "ForwardAgent": "yes").
 	Properties map[string]string

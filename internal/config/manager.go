@@ -90,6 +90,7 @@ func (m *Manager) GetHosts() []*Host {
 					}
 				}
 
+				h.Tags = ExtractTagsFromNodes(astHost.Nodes)
 				h.Name = h.Properties["HostName"]
 				h.User = h.Properties["User"]
 				h.Port = h.Properties["Port"]
