@@ -80,11 +80,11 @@ This document defines the coding standards, architectural decisions, and practic
 
 ## 3. Verification Commands Reference
 
-Run the following commands within their respective targets to ensure compliance (note: tests should only be run when explicitly instructed):
+Run the following commands within their respective targets to ensure compliance. Use just commands to achieve this:
 
 | Action | Command | Description |
 |---|---|---|
 | **Format** | `just fmt` | Formats all Go files using `gofmt` |
 | **Lint / Analyze** | `just lint` | Runs `golangci-lint` on the project |
-| **Run Application**| `just run` | Runs the TUI application directly |
-| **Test Run** | `go test ./...` | Runs the test suite (**Only if explicitly instructed**) |
+| **Build**| `just build` | Builds the TUI application |
+| **Test Run** | `just test` | Runs the test suite |
