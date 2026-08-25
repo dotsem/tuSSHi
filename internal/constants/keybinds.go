@@ -17,4 +17,5 @@ const (
 	KeyRight   = "right, l"
 	KeyPing    = "p"
 	KeyPingAll = "P"
+	KeyCopy    = "c"
 )

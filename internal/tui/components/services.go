@@ -11,6 +11,7 @@ import (
 	"tusshi/internal/tui/theme"
 	"tusshi/internal/utils"
 
+	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -41,6 +42,7 @@ func (s *Services) Init() tea.Cmd {
 }
 
 // Update handles navigation and action keybindings in the services overlay.
+// It returns true when the overlay should close, false otherwise.
 func (s *Services) Update(msg tea.Msg) (tea.Cmd, bool) {
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
 		switch {
@@ -79,8 +81,19 @@ func (s *Services) Update(msg tea.Msg) (tea.Cmd, bool) {
 					return ServiceActionMsg{Action: "delete", Host: selected}
 				}, true
 			}
+		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyCopy):
+			if s.SelectedIndex >= 0 && s.SelectedIndex < len(s.Hosts) {
+				// TODO: send success & error message to toast when toast component is implemented
+				selected := s.Hosts[s.SelectedIndex]
+				pubKey, _ := tussh.ReadPublicKey(selected.IdentityFile)
+
+				_ = clipboard.WriteAll(pubKey)
+				return nil, false
+			}
+
 		}
 	}
+
 	return nil, false
 }
 
@@ -197,7 +210,7 @@ func (s *Services) View(width int) string {
 	}
 
 	rows = append(rows, "")
-	rows = append(rows, muteStyle.Align(lipgloss.Center).Width(width).Render("↑/↓ navigate • e edit • a add • d delete • Esc close"))
+	rows = append(rows, muteStyle.Align(lipgloss.Center).Width(width).Render("↑/↓ navigate • e edit • a add • d delete • c copy pubkey • Esc close"))
 
 	return strings.Join(rows, "\n")
 }
