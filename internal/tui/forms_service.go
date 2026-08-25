@@ -43,7 +43,7 @@ func BuildServiceForm(s *ServiceFormState) *huh.Form {
 
 	presetOptions := make([]huh.Option[string], len(tussh.Presets))
 	for i, p := range tussh.Presets {
-		presetOptions[i] = huh.NewOption(p.Name, p.Alias)
+		presetOptions[i] = huh.NewOption(p.Name, p.HostName)
 	}
 
 	keyTypeOptions := []huh.Option[string]{
@@ -96,7 +96,7 @@ func BuildServiceForm(s *ServiceFormState) *huh.Form {
 		}
 		if s.PresetAlias != s.lastPreset || s.KeyType != s.lastKeyType {
 			if preset, ok := tussh.FindPreset(s.PresetAlias); ok {
-				s.HostAlias = preset.Alias
+				s.HostAlias = preset.HostName
 				s.HostName = preset.HostName
 				s.HostUser = preset.User
 			} else if s.PresetAlias == tussh.PresetCustom {
@@ -174,7 +174,7 @@ func BuildServiceForm(s *ServiceFormState) *huh.Form {
 // ApplyPreset fills HostAlias, HostName, and HostUser from the selected preset if still empty on submit.
 func (s *ServiceFormState) ApplyPreset() {
 	if preset, ok := tussh.FindPreset(s.PresetAlias); ok {
-		s.HostAlias = preset.Alias
+		s.HostAlias = preset.HostName
 		s.HostName = preset.HostName
 		s.HostUser = preset.User
 	} else if s.PresetAlias == tussh.PresetCustom {
@@ -188,13 +188,19 @@ func (s *ServiceFormState) ApplyPreset() {
 
 // ProvideDefaultKeyPath generates a non-colliding default SSH key path.
 func (s *ServiceFormState) ProvideDefaultKeyPath() string {
-	alias := s.HostAlias
-	if alias == "" {
-		alias = s.PresetAlias
+	keyBaseName := ""
+	if preset, ok := tussh.FindPreset(s.PresetAlias); ok && preset.KeyName != "" {
+		keyBaseName = preset.KeyName
+	} else {
+		keyBaseName = s.HostAlias
+		if keyBaseName == "" {
+			keyBaseName = s.PresetAlias
+		}
+		if keyBaseName == "" || keyBaseName == tussh.PresetCustom {
+			keyBaseName = "service"
+		}
 	}
-	if alias == "" || alias == tussh.PresetCustom {
-		alias = "service"
-	}
+
 	kType := s.KeyType
 	if kType == "" {
 		kType = tussh.KeyTypeED25519
@@ -204,7 +210,8 @@ func (s *ServiceFormState) ProvideDefaultKeyPath() string {
 	if err != nil {
 		home = "~"
 	}
-	base := filepath.Join(home, ".ssh", fmt.Sprintf("id_%s_%s", kType, alias))
+	base := filepath.Join(home, ".ssh", fmt.Sprintf("id_%s_%s", kType, keyBaseName))
+
 	target := base
 	counter := 1
 	for {

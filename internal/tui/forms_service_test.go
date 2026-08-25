@@ -10,33 +10,33 @@ import (
 )
 
 func TestServiceFormState(t *testing.T) {
-	t.Run("ApplyPreset populates github defaults when fields empty", func(t *testing.T) {
+	t.Run("ApplyPreset populates github.com defaults when fields empty", func(t *testing.T) {
 		state := &tui.ServiceFormState{
 			Action:      "add",
-			PresetAlias: "github",
+			PresetAlias: "github.com",
 			KeySource:   "generate",
 			KeyType:     tussh.KeyTypeED25519,
 		}
 
 		state.ApplyPreset()
 
-		assert.Equal(t, "github", state.HostAlias)
+		assert.Equal(t, "github.com", state.HostAlias)
 		assert.Equal(t, "github.com", state.HostName)
 		assert.Equal(t, "git", state.HostUser)
 		assert.Contains(t, state.KeyPath, "id_ed25519_github")
 	})
 
-	t.Run("ApplyPreset populates gitlab defaults when fields empty", func(t *testing.T) {
+	t.Run("ApplyPreset populates gitlab.com defaults when fields empty", func(t *testing.T) {
 		state := &tui.ServiceFormState{
 			Action:      "add",
-			PresetAlias: "gitlab",
+			PresetAlias: "gitlab.com",
 			KeySource:   "generate",
 			KeyType:     tussh.KeyTypeED25519,
 		}
 
 		state.ApplyPreset()
 
-		assert.Equal(t, "gitlab", state.HostAlias)
+		assert.Equal(t, "gitlab.com", state.HostAlias)
 		assert.Equal(t, "gitlab.com", state.HostName)
 		assert.Equal(t, "git", state.HostUser)
 		assert.Contains(t, state.KeyPath, "id_ed25519_gitlab")
@@ -55,7 +55,7 @@ func TestServiceFormState(t *testing.T) {
 	t.Run("BuildServiceForm returns valid non-nil form", func(t *testing.T) {
 		state := &tui.ServiceFormState{
 			Action:      "add",
-			PresetAlias: "github",
+			PresetAlias: "github.com",
 		}
 
 		form := tui.BuildServiceForm(state)

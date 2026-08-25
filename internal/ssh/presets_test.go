@@ -10,17 +10,19 @@ import (
 
 func TestFindPreset(t *testing.T) {
 	t.Run("returns built-in github preset", func(t *testing.T) {
-		preset, ok := ssh.FindPreset("github")
+		preset, ok := ssh.FindPreset("github.com")
 		assert.True(t, ok)
 		assert.Equal(t, "GitHub", preset.Name)
+		assert.Equal(t, "github", preset.KeyName)
 		assert.Equal(t, "github.com", preset.HostName)
 		assert.Equal(t, "git", preset.User)
 	})
 
 	t.Run("returns built-in gitlab preset", func(t *testing.T) {
-		preset, ok := ssh.FindPreset("gitlab")
+		preset, ok := ssh.FindPreset("gitlab.com")
 		assert.True(t, ok)
 		assert.Equal(t, "GitLab", preset.Name)
+		assert.Equal(t, "gitlab", preset.KeyName)
 		assert.Equal(t, "gitlab.com", preset.HostName)
 		assert.Equal(t, "git", preset.User)
 	})

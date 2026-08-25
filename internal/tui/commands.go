@@ -115,7 +115,7 @@ func (c *cmdContext) OpenServiceForm(action string, targetHost *config.Host) {
 		state.KeyPath = targetHost.IdentityFile
 		state.KeySource = keySourceExisting
 		if preset, ok := ssh.FindPreset(targetHost.Alias); ok {
-			state.PresetAlias = preset.Alias
+			state.PresetAlias = preset.HostName
 		} else {
 			state.PresetAlias = ssh.PresetCustom
 		}
