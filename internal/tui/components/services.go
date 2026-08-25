@@ -135,15 +135,14 @@ func (s *Services) View(width int) string {
 		rows = append(rows, muteStyle.Render(strings.Repeat("─", width)))
 
 		for i, h := range s.Hosts {
-			indicator := muteStyle.Render("○")
+			isOK := false
 			hasError := false
 			errMsg := ""
 
 			if st, ok := s.Results[h.Alias]; ok && st.Checked {
 				if st.Result.OK {
-					indicator = onlineStyle.Render("●")
+					isOK = true
 				} else {
-					indicator = offlineStyle.Render("●")
 					hasError = true
 					errMsg = st.Result.Error
 				}
@@ -153,27 +152,48 @@ func (s *Services) View(width int) string {
 			hostCell := truncateStr(h.Name, hostW)
 			keyCell := truncateStr(shortenPath(h.IdentityFile), keyW)
 
-			line1 := fmt.Sprintf("  %s  %-*s %-*s %s",
-				indicator,
-				aliasW, aliasCell,
-				hostW, hostCell,
-				keyCell,
-			)
-
 			if i == s.SelectedIndex {
-				line1 = selectedRowStyle.Width(width).Render(line1)
-			}
-			rows = append(rows, line1)
-
-			if hasError {
-				errText := truncateStr(errMsg, max(width-8, 15))
-				line2 := fmt.Sprintf("     %s %s", muteStyle.Render("└"), offlineStyle.Render(errText))
-				if i == s.SelectedIndex {
-					line2 = selectedRowStyle.Width(width).Render(line2)
+				indicatorSymbol := "○"
+				if isOK || hasError {
+					indicatorSymbol = "●"
 				}
-				rows = append(rows, line2)
+				listLine1 := fmt.Sprintf("  %s  %-*s %-*s %s",
+					indicatorSymbol,
+					aliasW, aliasCell,
+					hostW, hostCell,
+					keyCell,
+				)
+				rows = append(rows, selectedRowStyle.Width(width).Render(listLine1))
+
+				if hasError {
+					errText := truncateStr(errMsg, max(width-8, 15))
+					listLine2 := fmt.Sprintf("     └ %s", errText)
+					rows = append(rows, selectedRowStyle.Width(width).Render(listLine2))
+				}
+			} else {
+				indicator := muteStyle.Render("○")
+				if isOK {
+					indicator = onlineStyle.Render("●")
+				} else if hasError {
+					indicator = offlineStyle.Render("●")
+				}
+
+				line1 := fmt.Sprintf("  %s  %-*s %-*s %s",
+					indicator,
+					aliasW, aliasCell,
+					hostW, hostCell,
+					keyCell,
+				)
+				rows = append(rows, line1)
+
+				if hasError {
+					errText := truncateStr(errMsg, max(width-8, 15))
+					line2 := fmt.Sprintf("     %s %s", muteStyle.Render("└"), offlineStyle.Render(errText))
+					rows = append(rows, line2)
+				}
 			}
 		}
+
 	}
 
 	rows = append(rows, "")

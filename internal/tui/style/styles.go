@@ -89,7 +89,6 @@ var (
 	Dialog = lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(theme.Global.Primary).
-		Background(lipgloss.Color("#1A1A1A")).
 		Padding(1, 2)
 
 	Muted = lipgloss.NewStyle().
