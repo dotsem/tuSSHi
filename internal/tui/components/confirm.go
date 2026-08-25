@@ -17,6 +17,7 @@ type Confirm struct {
 	YesSelected bool
 	Theme       theme.Theme
 	OnConfirm   func() tea.Cmd
+	OnCancel    func() tea.Cmd
 	YesStr      string
 	NoStr       string
 	Destructive bool
@@ -52,6 +53,9 @@ func (c *Confirm) Update(msg tea.Msg) (tea.Cmd, bool) {
 		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyEnter):
 			if c.YesSelected && c.OnConfirm != nil {
 				return c.OnConfirm(), true
+			}
+			if !c.YesSelected && c.OnCancel != nil {
+				return c.OnCancel(), true
 			}
 			return nil, true
 		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyEsc),

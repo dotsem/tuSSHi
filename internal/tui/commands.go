@@ -3,6 +3,7 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"tusshi/internal/config"
@@ -147,7 +148,7 @@ func (c *cmdContext) OpenServiceEdit(alias string) {
 	c.OpenServiceForm(actionEdit, found)
 }
 
-// DeleteService prompts for confirmation and deletes a service host by alias.
+// DeleteService prompts for confirmation and deletes a service host by alias, with optional SSH key cleanup.
 func (c *cmdContext) DeleteService(alias string) {
 	var found *config.Host
 	for _, h := range c.model.Hosts {
@@ -161,18 +162,58 @@ func (c *cmdContext) DeleteService(alias string) {
 		return
 	}
 
+	keyPath := expandTildePath(found.IdentityFile)
+	var hasKeyFile bool
+	if keyPath != "" {
+		if _, err := os.Stat(keyPath); err == nil {
+			hasKeyFile = true
+		}
+	}
+
 	c.model.ActiveComponent = &components.Confirm{
 		Title:       "Delete Service Connection?",
 		Message:     fmt.Sprintf("Are you sure you want to delete service host '%s'?", alias),
 		Theme:       theme.Global,
 		Destructive: true,
 		OnConfirm: func() tea.Cmd {
-			if err := c.model.Manager.DeleteHost(alias); err != nil {
-				c.model.ErrorText = "Failed to delete service host: " + err.Error()
-			} else {
-				c.model.AlertText = fmt.Sprintf("Service host %q deleted", alias)
+			if !hasKeyFile {
+				if err := c.model.Manager.DeleteHost(alias); err != nil {
+					c.model.ErrorText = "Failed to delete service host: " + err.Error()
+				} else {
+					c.model.AlertText = fmt.Sprintf("Service host %q deleted", alias)
+				}
+				c.model.Reload()
+				return nil
 			}
-			c.model.Reload()
+
+			c.model.ActiveComponent = &components.Confirm{
+				Title:       "Delete Associated SSH Key Files?",
+				Message:     fmt.Sprintf("Do you also want to remove key files from disk?\n\n• Private: %s\n• Public: %s.pub", found.IdentityFile, found.IdentityFile),
+				Theme:       theme.Global,
+				YesStr:      " Delete Keys ",
+				NoStr:       " Keep Keys ",
+				Destructive: true,
+				OnConfirm: func() tea.Cmd {
+					_ = os.Remove(keyPath)
+					_ = os.Remove(keyPath + ".pub")
+					if err := c.model.Manager.DeleteHost(alias); err != nil {
+						c.model.ErrorText = "Failed to delete service host: " + err.Error()
+					} else {
+						c.model.AlertText = fmt.Sprintf("Service host %q and SSH key files deleted", alias)
+					}
+					c.model.Reload()
+					return nil
+				},
+				OnCancel: func() tea.Cmd {
+					if err := c.model.Manager.DeleteHost(alias); err != nil {
+						c.model.ErrorText = "Failed to delete service host: " + err.Error()
+					} else {
+						c.model.AlertText = fmt.Sprintf("Service host %q deleted (keys preserved)", alias)
+					}
+					c.model.Reload()
+					return nil
+				},
+			}
 			return nil
 		},
 	}
