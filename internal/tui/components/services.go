@@ -7,7 +7,7 @@ import (
 	"strings"
 	"tusshi/internal/config"
 	"tusshi/internal/constants"
-	gossh "tusshi/internal/ssh"
+	tussh "tusshi/internal/ssh"
 	"tusshi/internal/tui/theme"
 	"tusshi/internal/utils"
 
@@ -18,7 +18,7 @@ import (
 // ServiceStatus holds the live auth check state for one service host.
 type ServiceStatus struct {
 	Checked bool
-	Result  gossh.AuthResult
+	Result  tussh.AuthResult
 }
 
 // ServiceActionMsg is dispatched when a user triggers an action (edit, add, delete) from the Services overlay.
@@ -85,7 +85,7 @@ func (s *Services) Update(msg tea.Msg) (tea.Cmd, bool) {
 }
 
 // SetResult stores an auth check result received from a background tea.Cmd.
-func (s *Services) SetResult(alias string, result gossh.AuthResult) {
+func (s *Services) SetResult(alias string, result tussh.AuthResult) {
 	if s.Results == nil {
 		s.Results = make(map[string]*ServiceStatus)
 	}

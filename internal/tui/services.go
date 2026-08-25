@@ -2,7 +2,7 @@ package tui
 
 import (
 	"tusshi/internal/config"
-	gossh "tusshi/internal/ssh"
+	tussh "tusshi/internal/ssh"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -10,7 +10,7 @@ import (
 // ServiceCheckResult carries the auth check outcome for a single service host.
 type ServiceCheckResult struct {
 	Alias  string
-	Result gossh.AuthResult
+	Result tussh.AuthResult
 }
 
 // CheckServiceAuth runs the SSH auth check for a service host as a background tea.Cmd.
@@ -18,7 +18,7 @@ func CheckServiceAuth(h *config.Host) tea.Cmd {
 	return func() tea.Msg {
 		return ServiceCheckResult{
 			Alias:  h.Alias,
-			Result: gossh.CheckAuth(h.Alias),
+			Result: tussh.CheckAuth(h.Alias),
 		}
 	}
 }
