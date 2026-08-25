@@ -12,6 +12,7 @@ import (
 	"tusshi/internal/tui/theme"
 	"tusshi/internal/utils"
 
+	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -235,9 +236,12 @@ func (m *Model) executeServiceFormSubmit(s *ServiceFormState) {
 			m.AlertText = fmt.Sprintf("Key created at %s — could not read public key: %s", resolved, err)
 			return
 		}
+
+		_ = clipboard.WriteAll(pubKey)
+
 		m.ActiveComponent = &components.Alert{
-			Title:   "SSH Key Created — Add it to " + s.HostName,
-			Message: pubKey,
+			Title:   "SSH Key Created — Add to " + s.HostName,
+			Message: fmt.Sprintf("Public key copied to your clipboard!\n\nPaste this key into your %s account SSH settings:\n\n%s", s.HostName, pubKey),
 			Theme:   theme.Global,
 		}
 		return

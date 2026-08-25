@@ -73,9 +73,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.ActiveComponent != nil {
+		currentComponent := m.ActiveComponent
 		var activeCmd tea.Cmd
 		activeCmd, done := m.ActiveComponent.Update(msg)
-		if done {
+		if done && m.ActiveComponent == currentComponent {
 			m.ActiveComponent = nil
 			return m, tea.Batch(activeCmd, m.PingAll())
 		}
