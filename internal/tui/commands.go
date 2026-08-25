@@ -6,9 +6,11 @@ import (
 	"strings"
 
 	"tusshi/internal/config"
+	"tusshi/internal/ssh"
 	"tusshi/internal/tui/commands"
 	"tusshi/internal/tui/components"
 	"tusshi/internal/tui/theme"
+	"tusshi/internal/utils"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -27,6 +29,7 @@ const (
 	pingAllCmd      = "P, pingall"
 	tagCmd          = "tag"
 	untagCmd        = "untag"
+	serviceCmd      = "service, services, svc"
 )
 
 // helpOptions centralizes all interactive command shortcuts and their help text
@@ -39,21 +42,12 @@ var helpOptions = []components.HelpOption{
 	{Shortcut: untagCmd, Description: "Remove tags from connection (:untag [alias] <tags...>)"},
 	{Shortcut: pingCmd, Description: "Ping selected connection"},
 	{Shortcut: pingAllCmd, Description: "Ping all connections"},
+	{Shortcut: serviceCmd, Description: "Manage SSH services (:svc [add|edit|rm])"},
 	{Shortcut: addConfigCmd, Description: "Add a new config file"},
 	{Shortcut: renameConfigCmd, Description: "Rename a config file"},
 	{Shortcut: deleteConfigCmd, Description: "Delete empty config file"},
 	{Shortcut: quitCmd, Description: "Quit the application"},
 	{Shortcut: helpCmd, Description: "Show this help dialog"},
-}
-
-func matchesCommand(cmd string, shouldMatch string) bool {
-	cmds := strings.SplitSeq(shouldMatch, ",")
-	for s := range cmds {
-		if cmd == strings.TrimSpace(s) {
-			return true
-		}
-	}
-	return false
 }
 
 // cmdContext implements commands.Context to proxy actions to the Model.
@@ -68,7 +62,6 @@ func (c *cmdContext) Quit() {
 }
 
 // OpenHelp sets the active component to help overlay.
-
 func (c *cmdContext) OpenHelp() {
 	c.model.ActiveComponent = &components.Help{
 		Options: helpOptions,
@@ -76,7 +69,7 @@ func (c *cmdContext) OpenHelp() {
 	}
 }
 
-// OpenForm sets up and opens the add/edit interactive form.
+// OpenForm sets up and opens the add/edit interactive form for connections.
 func (c *cmdContext) OpenForm(action string) {
 	c.model.FormAction = action
 	c.model.ActiveComponent = &components.Form{
@@ -104,6 +97,155 @@ func (c *cmdContext) Reload() {
 	c.model.Reload()
 }
 
+// OpenServiceForm opens the SSH service form for adding or editing a service host.
+func (c *cmdContext) OpenServiceForm(action string, targetHost *config.Host) {
+	state := &ServiceFormState{
+		Action:      action,
+		KeySource:   keySourceGenerate,
+		KeyType:     ssh.KeyTypeED25519,
+		PresetAlias: "github",
+	}
+
+	if action == actionEdit && targetHost != nil {
+		state.OriginalAlias = targetHost.Alias
+		state.HostAlias = targetHost.Alias
+		state.HostName = targetHost.Name
+		state.HostUser = targetHost.User
+		state.KeyPath = targetHost.IdentityFile
+		state.KeySource = keySourceExisting
+		if preset, ok := ssh.FindPreset(targetHost.Alias); ok {
+			state.PresetAlias = preset.Alias
+		} else {
+			state.PresetAlias = ssh.PresetCustom
+		}
+
+	}
+
+	c.model.ActiveComponent = &components.Form{
+		Form: BuildServiceForm(state),
+		OnSubmit: func() {
+			c.model.executeServiceFormSubmit(state)
+		},
+	}
+	c.cmd = c.model.ActiveComponent.Init()
+}
+
+// OpenServiceEdit locates a service host by alias and opens its edit form.
+func (c *cmdContext) OpenServiceEdit(alias string) {
+	var found *config.Host
+	for _, h := range c.model.Hosts {
+		if h.IsService && h.Alias == alias {
+			found = h
+			break
+		}
+	}
+	if found == nil {
+		c.SetError(fmt.Sprintf("Service host %q not found", alias))
+		return
+	}
+	c.OpenServiceForm(actionEdit, found)
+}
+
+// DeleteService prompts for confirmation and deletes a service host by alias.
+func (c *cmdContext) DeleteService(alias string) {
+	var found *config.Host
+	for _, h := range c.model.Hosts {
+		if h.IsService && h.Alias == alias {
+			found = h
+			break
+		}
+	}
+	if found == nil {
+		c.SetError(fmt.Sprintf("Service host %q not found", alias))
+		return
+	}
+
+	c.model.ActiveComponent = &components.Confirm{
+		Title:       "Delete Service Connection?",
+		Message:     fmt.Sprintf("Are you sure you want to delete service host '%s'?", alias),
+		Theme:       theme.Global,
+		Destructive: true,
+		OnConfirm: func() tea.Cmd {
+			if err := c.model.Manager.DeleteHost(alias); err != nil {
+				c.model.ErrorText = "Failed to delete service host: " + err.Error()
+			} else {
+				c.model.AlertText = fmt.Sprintf("Service host %q deleted", alias)
+			}
+			c.model.Reload()
+			return nil
+		},
+	}
+}
+
+// OpenServices opens the services overlay and triggers background auth checks.
+func (c *cmdContext) OpenServices() {
+	var serviceHosts []*config.Host
+	for _, h := range c.model.Hosts {
+		if h.IsService {
+			serviceHosts = append(serviceHosts, h)
+		}
+	}
+	c.model.ActiveComponent = &components.Services{
+		Hosts:   serviceHosts,
+		Results: make(map[string]*components.ServiceStatus),
+		Theme:   theme.Global,
+	}
+	c.cmd = c.model.CheckAllServices()
+}
+
+// executeServiceFormSubmit processes service form submission for both add and edit actions.
+func (m *Model) executeServiceFormSubmit(s *ServiceFormState) {
+	s.ApplyPreset()
+
+	resolved := s.ResolvedKeyPath()
+
+	if s.KeySource == keySourceGenerate {
+		if err := ssh.GenerateKey(resolved, s.KeyType, s.KeyComment); err != nil {
+			m.ErrorText = "Key generation failed: " + err.Error()
+			return
+		}
+	}
+
+	h := &config.Host{
+		Alias:        s.HostAlias,
+		Name:         s.HostName,
+		User:         s.HostUser,
+		IdentityFile: resolved,
+		IsService:    true,
+		Properties:   make(map[string]string),
+	}
+
+	var err error
+	if s.Action == actionEdit {
+		err = m.Manager.UpdateHost(s.OriginalAlias, h)
+	} else {
+		err = m.Manager.AddServiceHost(h)
+	}
+
+	if err != nil {
+		m.ErrorText = "Failed to save service host: " + err.Error()
+		return
+	}
+
+	m.Reload()
+
+	if s.KeySource == keySourceGenerate {
+		pubKey, err := ssh.ReadPublicKey(resolved)
+		if err != nil {
+			m.AlertText = fmt.Sprintf("Key created at %s — could not read public key: %s", resolved, err)
+			return
+		}
+		m.ActiveComponent = &components.Alert{
+			Title:   "SSH Key Created — Add it to " + s.HostName,
+			Message: pubKey,
+			Theme:   theme.Global,
+		}
+		return
+	}
+
+	m.AlertText = fmt.Sprintf("Service host %q configured", s.HostAlias)
+}
+
 // GetActiveTab returns the model's active tab path.
 func (c *cmdContext) GetActiveTab() string {
 	return c.model.ActiveTab
@@ -125,16 +267,16 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 	var action func(commands.Context)
 
 	switch {
-	case matchesCommand(cmd, quitCmd):
+	case utils.MatchesMultipleStringOptions(cmd, quitCmd):
 		action = commands.Quit()
 
-	case matchesCommand(cmd, newCmd):
+	case utils.MatchesMultipleStringOptions(cmd, newCmd):
 		action = commands.New()
 
-	case matchesCommand(cmd, editCmd):
+	case utils.MatchesMultipleStringOptions(cmd, editCmd):
 		action = commands.Edit(len(m.Filtered) > 0)
 
-	case matchesCommand(cmd, deleteCmd):
+	case utils.MatchesMultipleStringOptions(cmd, deleteCmd):
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
 			m.ActiveComponent = &components.Confirm{
@@ -152,7 +294,7 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case matchesCommand(cmd, moveCmd):
+	case utils.MatchesMultipleStringOptions(cmd, moveCmd):
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
 			action = commands.Move(m.Manager, selected, parts)
@@ -160,41 +302,52 @@ func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-	case matchesCommand(cmd, helpCmd):
+	case utils.MatchesMultipleStringOptions(cmd, helpCmd):
 		action = commands.Help()
 
-	case matchesCommand(cmd, pingAllCmd):
+	case utils.MatchesMultipleStringOptions(cmd, pingAllCmd):
 		return m, m.PingAll()
 
-	case matchesCommand(cmd, pingCmd):
+	case utils.MatchesMultipleStringOptions(cmd, pingCmd):
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
 			return m, m.PingHost(selected)
 		}
 		return m, nil
 
-	case matchesCommand(cmd, addConfigCmd):
+	case utils.MatchesMultipleStringOptions(cmd, addConfigCmd):
 		action = commands.AddConfig(m.Manager, parts)
 
-	case matchesCommand(cmd, renameConfigCmd):
+	case utils.MatchesMultipleStringOptions(cmd, renameConfigCmd):
 		action = commands.RenameConfig(m.Manager, parts)
 
-	case matchesCommand(cmd, deleteConfigCmd):
+	case utils.MatchesMultipleStringOptions(cmd, deleteConfigCmd):
 		action = commands.DeleteConfig(m.Manager, parts)
 
-	case matchesCommand(cmd, tagCmd):
+	case utils.MatchesMultipleStringOptions(cmd, tagCmd):
 		var selected *config.Host
 		if len(m.Filtered) > 0 {
 			selected = m.Filtered[m.SelectedIndex]
 		}
 		action = commands.Tag(m.Manager, selected, parts)
 
-	case matchesCommand(cmd, untagCmd):
+	case utils.MatchesMultipleStringOptions(cmd, untagCmd):
 		var selected *config.Host
 		if len(m.Filtered) > 0 {
 			selected = m.Filtered[m.SelectedIndex]
 		}
 		action = commands.Untag(m.Manager, selected, parts)
+
+	case utils.MatchesMultipleStringOptions(cmd, serviceCmd):
+		subcmd := ""
+		alias := ""
+		if len(parts) > 1 {
+			subcmd = parts[1]
+		}
+		if len(parts) > 2 {
+			alias = parts[2]
+		}
+		action = commands.Service(subcmd, alias)
 
 	default:
 		m.ErrorText = "Unknown command: " + cmd

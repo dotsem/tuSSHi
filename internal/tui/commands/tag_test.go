@@ -26,9 +26,13 @@ func (m *mockContext) SetAlert(text string) {
 func (m *mockContext) SetError(text string) {
 	m.errorText = text
 }
-func (m *mockContext) Reload()               { m.reloaded = true }
-func (m *mockContext) GetActiveTab() string  { return "All" }
-func (m *mockContext) SetActiveTab(_ string) {}
+func (m *mockContext) Reload()                                  { m.reloaded = true }
+func (m *mockContext) GetActiveTab() string                     { return "All" }
+func (m *mockContext) SetActiveTab(_ string)                    {}
+func (m *mockContext) OpenServiceForm(_ string, _ *config.Host) {}
+func (m *mockContext) OpenServiceEdit(_ string)                 {}
+func (m *mockContext) DeleteService(_ string)                   {}
+func (m *mockContext) OpenServices()                            {}
 
 func TestTagCommand(t *testing.T) {
 	tmpDir := t.TempDir()

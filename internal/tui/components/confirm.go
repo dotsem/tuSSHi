@@ -2,7 +2,9 @@ package components
 
 import (
 	"strings"
+	"tusshi/internal/constants"
 	"tusshi/internal/tui/theme"
+	"tusshi/internal/utils"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -42,17 +44,18 @@ func (c *Confirm) Init() tea.Cmd {
 // Update processes navigation and selection events.
 func (c *Confirm) Update(msg tea.Msg) (tea.Cmd, bool) {
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
-		switch keyMsg.String() {
-		case "left", "h":
+		switch {
+		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyLeft):
 			c.YesSelected = true
-		case "right", "l":
+		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyRight):
 			c.YesSelected = false
-		case keyEnter:
+		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyEnter):
 			if c.YesSelected && c.OnConfirm != nil {
 				return c.OnConfirm(), true
 			}
 			return nil, true
-		case keyEsc, "q":
+		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyEsc),
+			utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyQuit):
 			return nil, true
 		}
 	}

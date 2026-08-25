@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"tusshi/internal/config"
+	"tusshi/internal/tui/components"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -42,6 +43,26 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			Pending: false,
 		}
 		return m, nil
+
+	case ServiceCheckResult:
+		if svc, ok := m.ActiveComponent.(*components.Services); ok {
+			svc.SetResult(msg.Alias, msg.Result)
+		}
+		return m, nil
+
+	case components.ServiceActionMsg:
+		ctx := &cmdContext{model: m}
+		switch msg.Action {
+		case "add": // TODO generalize string
+			ctx.OpenServiceForm("add", nil)
+		case "edit":
+			ctx.OpenServiceForm("edit", msg.Host)
+		case "delete":
+			if msg.Host != nil {
+				ctx.DeleteService(msg.Host.Alias)
+			}
+		}
+		return m, ctx.cmd
 
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyCtrlC {

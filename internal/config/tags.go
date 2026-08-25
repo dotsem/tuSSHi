@@ -135,3 +135,36 @@ func createTagCommentNode(tags []string) (ssh_config.Node, error) {
 	}
 	return decoded.Hosts[0].Nodes[0], nil
 }
+
+const serviceMarker = "tusshi: service"
+
+// ExtractServiceMarker returns true when any comment node inside the host block
+// contains the "tusshi: service" marker (case-insensitive).
+func ExtractServiceMarker(nodes []ssh_config.Node) bool {
+	for _, node := range nodes {
+		if empty, ok := node.(*ssh_config.Empty); ok {
+			line := strings.ToLower(strings.TrimSpace(empty.String()))
+			if strings.Contains(line, serviceMarker) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// WriteServiceMarker prepends a "# tusshi: service" comment node to the host block
+// so the entry is hidden from the tuSSHi connection list on next load.
+func WriteServiceMarker(astHost *ssh_config.Host) error {
+	if astHost == nil {
+		return fmt.Errorf("astHost cannot be nil")
+	}
+
+	decoded, err := ssh_config.Decode(strings.NewReader("    # " + serviceMarker + "\n"))
+	if err != nil || len(decoded.Hosts) == 0 || len(decoded.Hosts[0].Nodes) == 0 {
+		return fmt.Errorf("failed to create service marker AST node: %w", err)
+	}
+
+	node := decoded.Hosts[0].Nodes[0]
+	astHost.Nodes = append([]ssh_config.Node{node}, astHost.Nodes...)
+	return nil
+}

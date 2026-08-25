@@ -23,6 +23,9 @@ linters:
         linters:
           - dupl # Exclude duplicate check from tests
           - goconst # Exclude constant check from tests
+      - path: internal/constants/
+        linters:
+          - revive
 
 issues:
   max-issues-per-linter: 0
