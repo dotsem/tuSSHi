@@ -91,6 +91,29 @@ func (s *Services) Update(msg tea.Msg) (tea.Cmd, bool) {
 				return nil, false
 			}
 
+		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyPing):
+			if s.SelectedIndex >= 0 && s.SelectedIndex < len(s.Hosts) {
+				selected := s.Hosts[s.SelectedIndex]
+				if s.Results == nil {
+					s.Results = make(map[string]*ServiceStatus)
+				}
+				s.Results[selected.Alias] = &ServiceStatus{Checked: false}
+				return func() tea.Msg {
+					return ServiceActionMsg{Action: "ping", Host: selected}
+				}, false
+			}
+
+		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyPingAll):
+			if s.Results == nil {
+				s.Results = make(map[string]*ServiceStatus)
+			}
+			for _, h := range s.Hosts {
+				s.Results[h.Alias] = &ServiceStatus{Checked: false}
+			}
+			return func() tea.Msg {
+				return ServiceActionMsg{Action: "pingall"}
+			}, false
+
 		}
 	}
 
@@ -212,7 +235,7 @@ func (s *Services) View(width int) string {
 	}
 
 	rows = append(rows, "")
-	rows = append(rows, muteStyle.Align(lipgloss.Center).Width(width).Render("↑/↓ navigate • e edit • a add • d delete • c copy pubkey • Esc close"))
+	rows = append(rows, muteStyle.Align(lipgloss.Center).Width(width).Render("↑/↓ navigate • e edit • a add • d delete • c copy • p/P recheck • Esc close"))
 
 	return strings.Join(rows, "\n")
 }

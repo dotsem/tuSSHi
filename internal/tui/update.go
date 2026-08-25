@@ -61,6 +61,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.Host != nil {
 				ctx.DeleteService(msg.Host.Alias)
 			}
+		case "ping":
+			if msg.Host != nil {
+				return m, CheckServiceAuth(msg.Host)
+			}
+		case "pingall":
+			return m, m.CheckAllServices()
 		}
 		return m, ctx.cmd
 
