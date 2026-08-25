@@ -24,19 +24,23 @@ func (m *Model) View() string {
 
 	var dialogContent string
 	var showDialog bool
+	dialogWidth := min(100, m.Width-4)
+	if dialogWidth < 50 {
+		dialogWidth = max(40, m.Width-2)
+	}
 
 	if m.ActiveComponent != nil {
-		dialogContent = m.ActiveComponent.View(54)
+		dialogContent = m.ActiveComponent.View(dialogWidth - 4)
 		showDialog = true
 	}
 
 	if showDialog {
 		bgLines := strings.Split(stripANSI(bgString), "\n")
 
-		dialogWidth := min(60, m.Width-4)
-		dialogHeight := min(20, m.Height-2)
+		dialogHeight := min(22, m.Height-2)
 
 		dialogBox := style.Dialog.Width(dialogWidth).Height(dialogHeight).Render(dialogContent)
+
 		dialogLines := strings.Split(dialogBox, "\n")
 
 		dialogW := lipgloss.Width(dialogBox)

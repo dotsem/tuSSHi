@@ -121,42 +121,58 @@ func (s *Services) View(width int) string {
 	if len(s.Hosts) == 0 {
 		rows = append(rows, muteStyle.Align(lipgloss.Center).Width(width).Render("No service hosts configured — press 'a' or use :svc add"))
 	} else {
+		aliasW := 14
+		hostW := 20
+		keyW := max(width-aliasW-hostW-7, 24)
+
 		headerStyle := lipgloss.NewStyle().Foreground(s.Theme.Muted).Bold(true)
-		header := fmt.Sprintf("  %-12s %-20s %-28s %s",
-			headerStyle.Render("ALIAS"),
-			headerStyle.Render("HOST"),
+		header := fmt.Sprintf("    %-*s %-*s %s",
+			aliasW, headerStyle.Render("ALIAS"),
+			hostW, headerStyle.Render("HOST"),
 			headerStyle.Render("KEY"),
-			headerStyle.Render("AUTH"),
 		)
 		rows = append(rows, header)
 		rows = append(rows, muteStyle.Render(strings.Repeat("─", width)))
 
 		for i, h := range s.Hosts {
-			authCell := muteStyle.Render("○ Checking…")
+			indicator := muteStyle.Render("○")
+			hasError := false
+			errMsg := ""
+
 			if st, ok := s.Results[h.Alias]; ok && st.Checked {
 				if st.Result.OK {
-					authCell = onlineStyle.Render("● OK")
+					indicator = onlineStyle.Render("●")
 				} else {
-					errSnippet := st.Result.Error
-					if len(errSnippet) > 30 {
-						errSnippet = errSnippet[:27] + "…"
-					}
-					authCell = offlineStyle.Render("● " + errSnippet)
+					indicator = offlineStyle.Render("●")
+					hasError = true
+					errMsg = st.Result.Error
 				}
 			}
 
-			keyDisplay := shortenPath(h.IdentityFile)
-			rowText := fmt.Sprintf("  %-12s %-20s %-28s %s",
-				truncateStr(h.Alias, 12),
-				truncateStr(h.Name, 20),
-				truncateStr(keyDisplay, 28),
-				authCell,
+			aliasCell := truncateStr(h.Alias, aliasW)
+			hostCell := truncateStr(h.Name, hostW)
+			keyCell := truncateStr(shortenPath(h.IdentityFile), keyW)
+
+			line1 := fmt.Sprintf("  %s  %-*s %-*s %s",
+				indicator,
+				aliasW, aliasCell,
+				hostW, hostCell,
+				keyCell,
 			)
 
 			if i == s.SelectedIndex {
-				rowText = selectedRowStyle.Width(width).Render(rowText)
+				line1 = selectedRowStyle.Width(width).Render(line1)
 			}
-			rows = append(rows, rowText)
+			rows = append(rows, line1)
+
+			if hasError {
+				errText := truncateStr(errMsg, max(width-8, 15))
+				line2 := fmt.Sprintf("     %s %s", muteStyle.Render("└"), offlineStyle.Render(errText))
+				if i == s.SelectedIndex {
+					line2 = selectedRowStyle.Width(width).Render(line2)
+				}
+				rows = append(rows, line2)
+			}
 		}
 	}
 
