@@ -3,19 +3,21 @@ package components
 import (
 	"fmt"
 	"strings"
+	"tusshi/internal/constants"
 	"tusshi/internal/tui/theme"
+	"tusshi/internal/utils"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-// HelpOption represents a single command shortcut and its description.
+// HelpOption defines a shortcut key and description pair for the help menu.
 type HelpOption struct {
 	Shortcut    string
 	Description string
 }
 
-// Help represents the interactive help dialog component.
+// Help is a TUI overlay component displaying available shortcuts and commands.
 type Help struct {
 	Options []HelpOption
 	Theme   theme.Theme
@@ -29,8 +31,10 @@ func (h *Help) Init() tea.Cmd {
 // Update handles closing the help dialog.
 func (h *Help) Update(msg tea.Msg) (tea.Cmd, bool) {
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
-		switch keyMsg.String() {
-		case keyEsc, "q", keyEnter:
+		switch {
+		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyEsc),
+			utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyQuit),
+			utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyEnter):
 			return nil, true
 		}
 	}
@@ -45,18 +49,23 @@ func (h *Help) View(width int) string {
 		Align(lipgloss.Center).
 		Width(width)
 
-	header := titleStyle.Render("Available Commands")
 	divider := lipgloss.NewStyle().Foreground(h.Theme.Muted).Render(strings.Repeat("─", width))
-
-	cmdStyle := lipgloss.NewStyle().Foreground(h.Theme.Primary).Bold(true)
+	keyStyle := lipgloss.NewStyle().Foreground(h.Theme.Secondary).Bold(true)
 	descStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
 
-	var rows []string
-	rows = append(rows, header, divider)
-	for _, opt := range h.Options {
-		rows = append(rows, fmt.Sprintf("  %-22s %s", cmdStyle.Render(opt.Shortcut), descStyle.Render(opt.Description)))
+	rows := []string{
+		titleStyle.Render("Available Commands"),
+		divider,
+		"",
 	}
-	rows = append(rows, "", lipgloss.NewStyle().Foreground(h.Theme.Muted).Align(lipgloss.Center).Width(width).Render("Press Esc to close"))
+
+	for _, opt := range h.Options {
+		row := fmt.Sprintf("  %-25s %s", keyStyle.Render(opt.Shortcut), descStyle.Render(opt.Description))
+		rows = append(rows, row)
+	}
+
+	rows = append(rows, "")
+	rows = append(rows, lipgloss.NewStyle().Foreground(h.Theme.Muted).Align(lipgloss.Center).Width(width).Render("Press Esc / q / Enter to close"))
 
 	return strings.Join(rows, "\n")
 }

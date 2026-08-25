@@ -29,6 +29,10 @@ type Host struct {
 	// (e.g., "Host *") rather than a specific destination connection.
 	IsWildcard bool
 
+	// IsService marks host blocks that exist for key-based service auth (e.g. GitHub, GitLab)
+	// but should not appear in the interactive connection list.
+	IsService bool
+
 	// Tags holds custom metadata tags extracted losslessly from host comments.
 	Tags []string
 

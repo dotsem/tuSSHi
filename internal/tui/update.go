@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"tusshi/internal/config"
+	"tusshi/internal/tui/components"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -43,6 +44,32 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case ServiceCheckResult:
+		if svc, ok := m.ActiveComponent.(*components.Services); ok {
+			svc.SetResult(msg.Alias, msg.Result)
+		}
+		return m, nil
+
+	case components.ServiceActionMsg:
+		ctx := &cmdContext{model: m}
+		switch msg.Action {
+		case "add": // TODO generalize string
+			ctx.OpenServiceForm("add", nil)
+		case "edit":
+			ctx.OpenServiceForm("edit", msg.Host)
+		case "delete":
+			if msg.Host != nil {
+				ctx.DeleteService(msg.Host.Alias)
+			}
+		case "ping":
+			if msg.Host != nil {
+				return m, CheckServiceAuth(msg.Host)
+			}
+		case "pingall":
+			return m, m.CheckAllServices()
+		}
+		return m, ctx.cmd
+
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyCtrlC {
 			return m, tea.Quit
@@ -52,9 +79,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.ActiveComponent != nil {
+		currentComponent := m.ActiveComponent
 		var activeCmd tea.Cmd
 		activeCmd, done := m.ActiveComponent.Update(msg)
-		if done {
+		if done && m.ActiveComponent == currentComponent {
 			m.ActiveComponent = nil
 			return m, tea.Batch(activeCmd, m.PingAll())
 		}

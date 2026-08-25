@@ -188,7 +188,8 @@ func (m *Model) FilterHosts() {
 		}
 
 		// why: wildcard configs (e.g. Host *) are metadata, not connectable hosts
-		if h.IsWildcard {
+		// why: service configs are not meant to be connected to directly (e.g. GitHub ssh connection to clone repos over ssh)
+		if h.IsWildcard || h.IsService {
 			continue
 		}
 

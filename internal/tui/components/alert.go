@@ -2,13 +2,15 @@ package components
 
 import (
 	"strings"
+	"tusshi/internal/constants"
 	"tusshi/internal/tui/theme"
+	"tusshi/internal/utils"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Alert represents a reusable, self-contained TUI dialog modal for notices or errors.
+// Alert represents a reusable TUI alert overlay component.
 type Alert struct {
 	Title   string
 	Message string
@@ -16,7 +18,7 @@ type Alert struct {
 	Theme   theme.Theme
 }
 
-// Init initializes the alert component.
+// Init initializes the alert dialog.
 func (a *Alert) Init() tea.Cmd {
 	return nil
 }
@@ -24,8 +26,10 @@ func (a *Alert) Init() tea.Cmd {
 // Update processes navigation and dismiss events.
 func (a *Alert) Update(msg tea.Msg) (tea.Cmd, bool) {
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
-		switch keyMsg.String() {
-		case keyEsc, "q", keyEnter:
+		switch {
+		case utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyEsc),
+			utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyQuit),
+			utils.MatchesMultipleStringOptions(keyMsg.String(), constants.KeyEnter):
 			return nil, true
 		}
 	}
@@ -52,24 +56,13 @@ func (a *Alert) View(width int) string {
 
 	divider := lipgloss.NewStyle().Foreground(a.Theme.Muted).Render(strings.Repeat("─", width))
 
-	okBtn := lipgloss.NewStyle().
-		Background(accentColor).
-		Foreground(lipgloss.Color("0")).
-		Bold(true).
-		Padding(0, 3).
-		Render(" OK ")
-
-	buttonsStyle := lipgloss.NewStyle().Align(lipgloss.Center).Width(width)
-
 	rows := []string{
 		titleStyle.Render(a.Title),
 		divider,
 		"",
 		msgStyle.Render(a.Message),
 		"",
-		buttonsStyle.Render(okBtn),
-		"",
-		lipgloss.NewStyle().Foreground(a.Theme.Muted).Align(lipgloss.Center).Width(width).Render("Press Enter or Esc to dismiss"),
+		lipgloss.NewStyle().Foreground(a.Theme.Muted).Align(lipgloss.Center).Width(width).Render("Press OK / Enter / Esc / q to dismiss"),
 	}
 
 	return strings.Join(rows, "\n")

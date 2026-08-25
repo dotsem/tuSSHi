@@ -3,10 +3,12 @@ package tui
 import (
 	"fmt"
 
+	"tusshi/internal/constants"
 	"tusshi/internal/ssh"
 	"tusshi/internal/tui/commands"
 	"tusshi/internal/tui/components"
 	"tusshi/internal/tui/theme"
+	"tusshi/internal/utils"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -26,27 +28,27 @@ func (m *Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 // handleNormalKey processes keyboard shortcuts when the application is in normal mode.
 func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch msg.String() {
-	case "q":
+	switch {
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyQuit):
 		return m, tea.Quit
 
-	case "j", "down":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyDown):
 		if m.SelectedIndex < len(m.Filtered)-1 {
 			m.SelectedIndex++
 		}
 
-	case "k", "up":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyUp):
 		if m.SelectedIndex > 0 {
 			m.SelectedIndex--
 		}
 
-	case "h", "left":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyLeft):
 		m.navigateTabs(-1)
 
-	case "l", "right":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyRight):
 		m.navigateTabs(1)
 
-	case "p":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyPing):
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
 			if m.PingResults == nil {
@@ -56,23 +58,23 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, m.PingHost(selected)
 		}
 
-	case "P":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyPingAll):
 		return m, m.PingAll()
 
-	case "/":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeySearch):
 		m.Mode = ModeSearch
 		m.SearchInput.SetValue("")
 		m.SearchInput.Focus()
 		m.FilterHosts()
 		return m, textinput.Blink
 
-	case ":":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyCommand):
 		m.Mode = ModeCommand
 		m.CommandInput.SetValue("")
 		m.CommandInput.Focus()
 		return m, textinput.Blink
 
-	case "a":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyAdd):
 		m.FormAction = actionAdd
 		m.ActiveComponent = &components.Form{
 			Form:     m.BuildHostForm(m.ActiveTab),
@@ -83,7 +85,7 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, m.ActiveComponent.Init()
 
-	case "e":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyEdit):
 		if len(m.Filtered) > 0 {
 			m.FormAction = actionEdit
 			m.ActiveComponent = &components.Form{
@@ -96,7 +98,7 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, m.ActiveComponent.Init()
 		}
 
-	case "d":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyDelete):
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
 			m.ActiveComponent = &components.Confirm{
@@ -113,14 +115,14 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 			return m, m.ActiveComponent.Init()
 		}
-	case "?", ",":
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyHelp):
 		m.ActiveComponent = &components.Help{
 			Options: helpOptions,
 			Theme:   theme.Global,
 		}
 		return m, m.ActiveComponent.Init()
 
-	case keyEnter:
+	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyEnter):
 		if len(m.Filtered) > 0 {
 			selected := m.Filtered[m.SelectedIndex]
 			sshCmd := ssh.NewSSHCommand(selected.Alias)
@@ -136,7 +138,7 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // handleSearchKey processes keyboard input when performing a text search.
 func (m *Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
-	case keyEsc, keyEnter:
+	case constants.KeyEsc, constants.KeyEnter:
 		m.Mode = ModeNormal
 		m.SearchInput.Blur()
 		return m, nil
@@ -151,11 +153,11 @@ func (m *Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // handleCommandKey processes keyboard input when typing command-line instructions.
 func (m *Model) handleCommandKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
-	case keyEsc:
+	case constants.KeyEsc:
 		m.Mode = ModeNormal
 		m.CommandInput.Blur()
 		return m, nil
-	case keyEnter:
+	case constants.KeyEnter:
 		rawCmd := m.CommandInput.Value()
 		m.Mode = ModeNormal
 		m.CommandInput.Blur()

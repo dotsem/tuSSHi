@@ -81,6 +81,7 @@ func (m *Manager) GetHosts() []*Host {
 					Alias:      alias,
 					SourceFile: filePath,
 					IsWildcard: isWildcard,
+					IsService:  ExtractServiceMarker(astHost.Nodes),
 					Properties: make(map[string]string),
 				}
 

@@ -3,11 +3,6 @@ package components
 
 import tea "github.com/charmbracelet/bubbletea"
 
-const (
-	keyEsc   = "esc"
-	keyEnter = "enter"
-)
-
 // Component represents a self-contained interactive UI overlay.
 type Component interface {
 	// Init initializes the component and returns any setup commands.

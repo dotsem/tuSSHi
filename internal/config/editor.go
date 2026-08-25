@@ -65,6 +65,51 @@ func (m *Manager) AddHost(targetFile string, h *Host) error {
 	return m.SaveFile(absTarget)
 }
 
+// AddServiceHost writes a service host block (e.g. GitHub, GitLab) directly to the
+// primary SSH config file with a # tusshi: service marker, keeping it invisible in
+// the tuSSHi connection list while remaining fully functional for git and SSH auth.
+func (m *Manager) AddServiceHost(h *Host) error {
+	hostBlockStr := buildHostString(h)
+	decoded, err := ssh_config.Decode(strings.NewReader(hostBlockStr))
+	if err != nil {
+		return err
+	}
+
+	var newASTHost *ssh_config.Host
+	for _, astHost := range decoded.Hosts {
+		val := reflect.ValueOf(astHost)
+		isImplicit := false
+		if val.Kind() == reflect.Pointer && !val.IsNil() {
+			elem := val.Elem()
+			implicitField := elem.FieldByName("implicit")
+			if implicitField.IsValid() && implicitField.Kind() == reflect.Bool && implicitField.Bool() {
+				isImplicit = true
+			}
+		}
+		if !isImplicit && len(astHost.Patterns) > 0 {
+			newASTHost = astHost
+			break
+		}
+	}
+
+	if newASTHost == nil {
+		return fmt.Errorf("could not parse host block for alias %q", h.Alias)
+	}
+
+	if err := WriteServiceMarker(newASTHost); err != nil {
+		return err
+	}
+
+	primaryCfg, exists := m.Configs[m.PrimaryPath]
+	if !exists {
+		primaryCfg = &ssh_config.Config{Hosts: []*ssh_config.Host{}}
+		m.Configs[m.PrimaryPath] = primaryCfg
+	}
+
+	primaryCfg.Hosts = append(primaryCfg.Hosts, newASTHost)
+	return m.SaveFile(m.PrimaryPath)
+}
+
 // UpdateHost edits an existing Host block matched by its original alias.
 // It preserves formatting, comments, and other unrecognized nodes in the block.
 func (m *Manager) UpdateHost(originalAlias string, h *Host) error {
