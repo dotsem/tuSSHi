@@ -166,17 +166,19 @@ func (s *Services) View(width int) string {
 			keyCell := truncateStr(shortenPath(h.IdentityFile), keyW)
 
 			if i == s.SelectedIndex {
-				indicatorSymbol := "○"
-				if isOK || hasError {
-					indicatorSymbol = "●"
+				indicator := muteStyle.Background(lipgloss.Color("237")).Bold(true).Render("○")
+				if isOK {
+					indicator = onlineStyle.Background(lipgloss.Color("237")).Bold(true).Render("●")
+				} else if hasError {
+					indicator = offlineStyle.Background(lipgloss.Color("237")).Bold(true).Render("●")
 				}
-				listLine1 := fmt.Sprintf("  %s  %-*s %-*s %s",
-					indicatorSymbol,
-					aliasW, aliasCell,
-					hostW, hostCell,
-					keyCell,
-				)
-				rows = append(rows, selectedRowStyle.Width(width).Render(listLine1))
+
+				padLeft := selectedRowStyle.Render("  ")
+				padMid := selectedRowStyle.Render("  ")
+				restText := fmt.Sprintf("%-*s %-*s %s", aliasW, aliasCell, hostW, hostCell, keyCell)
+				restFormatted := selectedRowStyle.Width(max(width-5, 10)).Render(restText)
+
+				rows = append(rows, padLeft+indicator+padMid+restFormatted)
 
 				if hasError {
 					errText := truncateStr(errMsg, max(width-8, 15))
