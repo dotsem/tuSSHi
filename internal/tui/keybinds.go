@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"fmt"
-
 	"tusshi/internal/constants"
 	"tusshi/internal/ssh"
 	"tusshi/internal/tui/commands"
@@ -100,24 +98,16 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyDelete):
 		if len(m.Filtered) > 0 {
-			selected := m.Filtered[m.SelectedIndex]
-			m.ActiveComponent = &components.Confirm{
-				Title:       "Delete Connection?",
-				Message:     fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
-				Theme:       theme.Global,
-				Destructive: true,
-				OnConfirm: func() tea.Cmd {
-					ctx := &cmdContext{model: m}
-					action := commands.DeleteHost(m.Manager, selected)
-					action(ctx)
-					return ctx.cmd
-				},
+			ctx := &cmdContext{model: m}
+			_ = commands.Dispatch(":d", ctx)
+			if m.ActiveComponent != nil {
+				return m, m.ActiveComponent.Init()
 			}
-			return m, m.ActiveComponent.Init()
+			return m, nil
 		}
 	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyHelp):
 		m.ActiveComponent = &components.Help{
-			Options: helpOptions,
+			Options: commands.HelpOptions(),
 			Theme:   theme.Global,
 		}
 		return m, m.ActiveComponent.Init()

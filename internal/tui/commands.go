@@ -2,52 +2,13 @@
 package tui
 
 import (
-	"fmt"
-	"strings"
-
 	"tusshi/internal/config"
 	"tusshi/internal/tui/commands"
 	"tusshi/internal/tui/components"
 	"tusshi/internal/tui/theme"
-	"tusshi/internal/utils"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
-
-const (
-	quitCmd         = "q, quit"
-	newCmd          = "n, new"
-	editCmd         = "e, edit"
-	deleteCmd       = "d, rm"
-	moveCmd         = "m, mv"
-	helpCmd         = "h, help, ?"
-	addConfigCmd    = "addconf, add-config"
-	renameConfigCmd = "mvconf, rename-config"
-	deleteConfigCmd = "rmconf, delete-config"
-	pingCmd         = "p, ping"
-	pingAllCmd      = "P, pingall"
-	tagCmd          = "tag"
-	untagCmd        = "untag"
-	serviceCmd      = "service, services, svc"
-)
-
-// helpOptions centralizes all interactive command shortcuts and their help text
-var helpOptions = []components.HelpOption{
-	{Shortcut: newCmd, Description: "Create a new connection"},
-	{Shortcut: editCmd, Description: "Edit selected connection"},
-	{Shortcut: deleteCmd, Description: "Delete selected connection"},
-	{Shortcut: moveCmd, Description: "Move connection to a file/tab"},
-	{Shortcut: tagCmd, Description: "Add tags to connection (:tag [alias] <tags...>)"},
-	{Shortcut: untagCmd, Description: "Remove tags from connection (:untag [alias] <tags...>)"},
-	{Shortcut: pingCmd, Description: "Ping selected connection"},
-	{Shortcut: pingAllCmd, Description: "Ping all connections"},
-	{Shortcut: serviceCmd, Description: "Manage SSH services (:svc [add|edit|rm])"},
-	{Shortcut: addConfigCmd, Description: "Add a new config file"},
-	{Shortcut: renameConfigCmd, Description: "Rename a config file"},
-	{Shortcut: deleteConfigCmd, Description: "Delete empty config file"},
-	{Shortcut: quitCmd, Description: "Quit the application"},
-	{Shortcut: helpCmd, Description: "Show this help dialog"},
-}
 
 // cmdContext implements commands.Context to proxy actions to the Model.
 type cmdContext struct {
@@ -63,7 +24,7 @@ func (c *cmdContext) Quit() {
 // OpenHelp sets the active component to help overlay.
 func (c *cmdContext) OpenHelp() {
 	c.model.ActiveComponent = &components.Help{
-		Options: helpOptions,
+		Options: commands.HelpOptions(),
 		Theme:   theme.Global,
 	}
 }
@@ -106,106 +67,49 @@ func (c *cmdContext) SetActiveTab(tab string) {
 	c.model.ActiveTab = tab
 }
 
-// executeCommand runs commands typed into the command mode bar.
+// GetSelectedHost returns the currently selected host from the filtered list.
+func (c *cmdContext) GetSelectedHost() *config.Host {
+	if len(c.model.Filtered) > 0 && c.model.SelectedIndex >= 0 && c.model.SelectedIndex < len(c.model.Filtered) {
+		return c.model.Filtered[c.model.SelectedIndex]
+	}
+	return nil
+}
+
+// GetManager returns the configuration manager instance.
+func (c *cmdContext) GetManager() *config.Manager {
+	return c.model.Manager
+}
+
+// Confirm sets the active component to a confirmation dialog overlay.
+func (c *cmdContext) Confirm(title, message string, destructive bool, onConfirm func()) {
+	c.model.ActiveComponent = &components.Confirm{
+		Title:       title,
+		Message:     message,
+		Theme:       theme.Global,
+		Destructive: destructive,
+		OnConfirm: func() tea.Cmd {
+			onConfirm()
+			return nil
+		},
+	}
+}
+
+// PingHost triggers a background ping check for a single host.
+func (c *cmdContext) PingHost(host *config.Host) {
+	c.cmd = c.model.PingHost(host)
+}
+
+// PingAll triggers background ping checks for all hosts.
+func (c *cmdContext) PingAll() {
+	c.cmd = c.model.PingAll()
+}
+
+// executeCommand runs commands typed into the command mode bar via the commands registry.
 func (m *Model) executeCommand(raw string) (tea.Model, tea.Cmd) {
-	parts := strings.Fields(strings.TrimPrefix(raw, ":"))
-	if len(parts) == 0 {
-		return m, nil
-	}
-
-	cmd := parts[0]
-	var action func(commands.Context)
-
-	switch {
-	case utils.MatchesMultipleStringOptions(cmd, quitCmd):
-		action = commands.Quit()
-
-	case utils.MatchesMultipleStringOptions(cmd, newCmd):
-		action = commands.NewHost()
-
-	case utils.MatchesMultipleStringOptions(cmd, editCmd):
-		action = commands.EditHost(len(m.Filtered) > 0)
-
-	case utils.MatchesMultipleStringOptions(cmd, deleteCmd):
-		if len(m.Filtered) > 0 {
-			selected := m.Filtered[m.SelectedIndex]
-			m.ActiveComponent = &components.Confirm{
-				Title:       "Delete Connection?",
-				Message:     fmt.Sprintf("Are you sure you want to delete host '%s'?", selected.Alias),
-				Theme:       theme.Global,
-				Destructive: true,
-				OnConfirm: func() tea.Cmd {
-					ctx := &cmdContext{model: m}
-					action := commands.DeleteHost(m.Manager, selected)
-					action(ctx)
-					return ctx.cmd
-				},
-			}
-		}
-		return m, nil
-
-	case utils.MatchesMultipleStringOptions(cmd, moveCmd):
-		if len(m.Filtered) > 0 {
-			selected := m.Filtered[m.SelectedIndex]
-			action = commands.MoveHost(m.Manager, selected, parts)
-		} else {
-			return m, nil
-		}
-
-	case utils.MatchesMultipleStringOptions(cmd, helpCmd):
-		action = commands.Help()
-
-	case utils.MatchesMultipleStringOptions(cmd, pingAllCmd):
-		return m, m.PingAll()
-
-	case utils.MatchesMultipleStringOptions(cmd, pingCmd):
-		if len(m.Filtered) > 0 {
-			selected := m.Filtered[m.SelectedIndex]
-			return m, m.PingHost(selected)
-		}
-		return m, nil
-
-	case utils.MatchesMultipleStringOptions(cmd, addConfigCmd):
-		action = commands.AddConfig(m.Manager, parts)
-
-	case utils.MatchesMultipleStringOptions(cmd, renameConfigCmd):
-		action = commands.RenameConfig(m.Manager, parts)
-
-	case utils.MatchesMultipleStringOptions(cmd, deleteConfigCmd):
-		action = commands.DeleteConfig(m.Manager, parts)
-
-	case utils.MatchesMultipleStringOptions(cmd, tagCmd):
-		var selected *config.Host
-		if len(m.Filtered) > 0 {
-			selected = m.Filtered[m.SelectedIndex]
-		}
-		action = commands.TagHost(m.Manager, selected, parts)
-
-	case utils.MatchesMultipleStringOptions(cmd, untagCmd):
-		var selected *config.Host
-		if len(m.Filtered) > 0 {
-			selected = m.Filtered[m.SelectedIndex]
-		}
-		action = commands.UntagHost(m.Manager, selected, parts)
-
-	case utils.MatchesMultipleStringOptions(cmd, serviceCmd):
-		subcmd := ""
-		alias := ""
-		if len(parts) > 1 {
-			subcmd = parts[1]
-		}
-		if len(parts) > 2 {
-			alias = parts[2]
-		}
-		action = commands.Service(subcmd, alias)
-
-	default:
-		m.ErrorText = "Unknown command: " + cmd
-		return m, nil
-	}
-
 	ctx := &cmdContext{model: m}
-	action(ctx)
-
+	if err := commands.Dispatch(raw, ctx); err != nil {
+		m.ErrorText = err.Error()
+		return m, nil
+	}
 	return m, ctx.cmd
 }

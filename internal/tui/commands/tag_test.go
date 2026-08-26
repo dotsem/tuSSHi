@@ -12,27 +12,30 @@ import (
 )
 
 type mockContext struct {
-	alertText string
-	errorText string
-	reloaded  bool
+	alertText    string
+	errorText    string
+	reloaded     bool
+	selectedHost *config.Host
+	mgr          *config.Manager
 }
 
-func (m *mockContext) Quit()             {}
-func (m *mockContext) OpenHelp()         {}
-func (m *mockContext) OpenForm(_ string) {}
-func (m *mockContext) SetAlert(text string) {
-	m.alertText = text
-}
-func (m *mockContext) SetError(text string) {
-	m.errorText = text
-}
-func (m *mockContext) Reload()                                  { m.reloaded = true }
-func (m *mockContext) GetActiveTab() string                     { return "All" }
-func (m *mockContext) SetActiveTab(_ string)                    {}
-func (m *mockContext) OpenServiceForm(_ string, _ *config.Host) {}
-func (m *mockContext) OpenServiceEdit(_ string)                 {}
-func (m *mockContext) DeleteService(_ string)                   {}
-func (m *mockContext) OpenServices()                            {}
+func (m *mockContext) Quit()                                         {}
+func (m *mockContext) OpenHelp()                                     {}
+func (m *mockContext) OpenForm(_ string)                             {}
+func (m *mockContext) SetAlert(text string)                          { m.alertText = text }
+func (m *mockContext) SetError(text string)                          { m.errorText = text }
+func (m *mockContext) Reload()                                       { m.reloaded = true }
+func (m *mockContext) GetActiveTab() string                          { return "All" }
+func (m *mockContext) SetActiveTab(_ string)                         {}
+func (m *mockContext) OpenServiceForm(_ string, _ *config.Host)      {}
+func (m *mockContext) OpenServiceEdit(_ string)                      {}
+func (m *mockContext) DeleteService(_ string)                        {}
+func (m *mockContext) OpenServices()                                 {}
+func (m *mockContext) GetSelectedHost() *config.Host                 { return m.selectedHost }
+func (m *mockContext) GetManager() *config.Manager                   { return m.mgr }
+func (m *mockContext) Confirm(_, _ string, _ bool, onConfirm func()) { onConfirm() }
+func (m *mockContext) PingHost(_ *config.Host)                       {}
+func (m *mockContext) PingAll()                                      {}
 
 func TestTagCommand(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -54,9 +57,9 @@ Host web-server
 	assert.Len(t, hosts, 1)
 
 	t.Run("adds new tags to selected host", func(t *testing.T) {
-		ctx := &mockContext{}
-		action := commands.TagHost(mgr, hosts[0], []string{":tag", "aws", "k8s"})
-		action(ctx)
+		ctx := &mockContext{mgr: mgr, selectedHost: hosts[0]}
+		err := commands.Dispatch(":tag aws k8s", ctx)
+		assert.NoError(t, err)
 
 		assert.True(t, ctx.reloaded)
 		assert.Contains(t, ctx.alertText, "Tagged")
@@ -66,9 +69,9 @@ Host web-server
 	})
 
 	t.Run("removes tags from selected host", func(t *testing.T) {
-		ctx := &mockContext{}
-		action := commands.UntagHost(mgr, hosts[0], []string{":untag", "aws"})
-		action(ctx)
+		ctx := &mockContext{mgr: mgr, selectedHost: hosts[0]}
+		err := commands.Dispatch(":untag aws", ctx)
+		assert.NoError(t, err)
 
 		assert.True(t, ctx.reloaded)
 		assert.Contains(t, ctx.alertText, "Removed tags")
@@ -78,9 +81,9 @@ Host web-server
 	})
 
 	t.Run("error on missing arguments", func(t *testing.T) {
-		ctx := &mockContext{}
-		action := commands.TagHost(mgr, hosts[0], []string{":tag"})
-		action(ctx)
+		ctx := &mockContext{mgr: mgr, selectedHost: hosts[0]}
+		err := commands.Dispatch(":tag", ctx)
+		assert.NoError(t, err)
 
 		assert.Contains(t, ctx.errorText, "Usage")
 	})
