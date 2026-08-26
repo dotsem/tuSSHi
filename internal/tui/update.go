@@ -3,7 +3,6 @@ package tui
 import (
 	"fmt"
 
-	"tusshi/internal/config"
 	"tusshi/internal/tui/components"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -125,41 +124,4 @@ func (m *Model) navigateTabs(direction int) {
 	m.ActiveTab = m.Tabs[newIndex]
 	m.SelectedIndex = 0
 	m.FilterHosts()
-}
-
-// executeFormSubmit saves the completed CRUD form details back to disk AST.
-func (m *Model) executeFormSubmit() {
-	var err error
-
-	m.FormHost.SourceFile = m.FormDestFile
-	m.FormHost.Tags = config.ExtractTagsFromComment("# tags: " + m.FormTagsString)
-	if m.FormProxyJump != "" {
-		m.FormHost.Properties["ProxyJump"] = m.FormProxyJump
-	} else {
-		delete(m.FormHost.Properties, "ProxyJump")
-	}
-	if m.FormForwardAgent != "" {
-		m.FormHost.Properties["ForwardAgent"] = m.FormForwardAgent
-	} else {
-		delete(m.FormHost.Properties, "ForwardAgent")
-	}
-
-	switch m.FormAction {
-	case actionAdd:
-		err = m.Manager.AddHost(m.FormHost.SourceFile, m.FormHost)
-		if err == nil {
-			m.AlertText = fmt.Sprintf("Host %q added successfully!", m.FormHost.Alias)
-		}
-	case actionEdit:
-		err = m.Manager.UpdateHost(m.FormOriginalAlias, m.FormHost)
-		if err == nil {
-			m.AlertText = fmt.Sprintf("Host %q updated successfully!", m.FormHost.Alias)
-		}
-	}
-
-	if err != nil {
-		m.ErrorText = "Error saving host: " + err.Error()
-	}
-
-	m.Reload()
 }

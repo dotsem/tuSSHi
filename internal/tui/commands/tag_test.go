@@ -55,7 +55,7 @@ Host web-server
 
 	t.Run("adds new tags to selected host", func(t *testing.T) {
 		ctx := &mockContext{}
-		action := commands.Tag(mgr, hosts[0], []string{":tag", "aws", "k8s"})
+		action := commands.TagHost(mgr, hosts[0], []string{":tag", "aws", "k8s"})
 		action(ctx)
 
 		assert.True(t, ctx.reloaded)
@@ -67,7 +67,7 @@ Host web-server
 
 	t.Run("removes tags from selected host", func(t *testing.T) {
 		ctx := &mockContext{}
-		action := commands.Untag(mgr, hosts[0], []string{":untag", "aws"})
+		action := commands.UntagHost(mgr, hosts[0], []string{":untag", "aws"})
 		action(ctx)
 
 		assert.True(t, ctx.reloaded)
@@ -79,7 +79,7 @@ Host web-server
 
 	t.Run("error on missing arguments", func(t *testing.T) {
 		ctx := &mockContext{}
-		action := commands.Tag(mgr, hosts[0], []string{":tag"})
+		action := commands.TagHost(mgr, hosts[0], []string{":tag"})
 		action(ctx)
 
 		assert.Contains(t, ctx.errorText, "Usage")

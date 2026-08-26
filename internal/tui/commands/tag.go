@@ -8,8 +8,8 @@ import (
 	"tusshi/internal/config"
 )
 
-// Tag appends metadata tags to a target host or the selected host.
-func Tag(mgr *config.Manager, selectedHost *config.Host, parts []string) func(Context) {
+// TagHost appends metadata tags to a target host or the selected host.
+func TagHost(mgr *config.Manager, selectedHost *config.Host, parts []string) func(Context) {
 	return func(ctx Context) {
 		if len(parts) < 2 {
 			ctx.SetError("Usage: :tag [alias] <tag1> [tag2...]")
@@ -47,8 +47,8 @@ func Tag(mgr *config.Manager, selectedHost *config.Host, parts []string) func(Co
 	}
 }
 
-// Untag removes metadata tags from a target host or the selected host.
-func Untag(mgr *config.Manager, selectedHost *config.Host, parts []string) func(Context) {
+// UntagHost removes metadata tags from a target host or the selected host.
+func UntagHost(mgr *config.Manager, selectedHost *config.Host, parts []string) func(Context) {
 	return func(ctx Context) {
 		if len(parts) < 2 {
 			ctx.SetError("Usage: :untag [alias] <tag1> [tag2...]")

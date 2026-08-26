@@ -2,8 +2,6 @@ package components
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"tusshi/internal/config"
 	"tusshi/internal/constants"
@@ -238,27 +236,4 @@ func (s *Services) View(width int) string {
 	rows = append(rows, muteStyle.Align(lipgloss.Center).Width(width).Render("↑/↓ navigate • e edit • a add • d delete • c copy • p/P recheck • Esc close"))
 
 	return strings.Join(rows, "\n")
-}
-
-func shortenPath(p string) string {
-	if p == "" {
-		return "—"
-	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return p
-	}
-	rel, err := filepath.Rel(home, p)
-	if err != nil || strings.HasPrefix(rel, "..") {
-		return p
-	}
-	return "~/" + rel
-}
-
-func truncateStr(s string, limit int) string {
-	runes := []rune(s)
-	if len(runes) <= limit {
-		return s
-	}
-	return string(runes[:limit-1]) + "…"
 }

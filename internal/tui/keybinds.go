@@ -108,7 +108,7 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				Destructive: true,
 				OnConfirm: func() tea.Cmd {
 					ctx := &cmdContext{model: m}
-					action := commands.Delete(m.Manager, selected)
+					action := commands.DeleteHost(m.Manager, selected)
 					action(ctx)
 					return ctx.cmd
 				},
