@@ -16,4 +16,9 @@ type Context interface {
 	OpenServiceEdit(alias string)
 	DeleteService(alias string)
 	OpenServices()
+	GetSelectedHost() *config.Host
+	GetManager() *config.Manager
+	Confirm(title, message string, destructive bool, onConfirm func())
+	PingHost(host *config.Host)
+	PingAll()
 }

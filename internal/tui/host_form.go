@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -10,9 +11,7 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-// BuildHostForm creates a beautiful multi-step interactive form using Huh
-// for adding or editing an SSH connection. It accommodates standard fields
-// and common advanced settings cleanly.
+// BuildHostForm creates a multi-step interactive form for adding or editing an SSH connection.
 func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 	m.FormHost = &config.Host{
 		Properties: make(map[string]string),
@@ -121,4 +120,41 @@ func (m *Model) ValidateForm() error {
 		return nil
 	}
 	return validation.ValidateAlias(m.FormHost.Alias)
+}
+
+// executeFormSubmit saves the completed CRUD form details back to disk AST.
+func (m *Model) executeFormSubmit() {
+	var err error
+
+	m.FormHost.SourceFile = m.FormDestFile
+	m.FormHost.Tags = config.ExtractTagsFromComment("# tags: " + m.FormTagsString)
+	if m.FormProxyJump != "" {
+		m.FormHost.Properties["ProxyJump"] = m.FormProxyJump
+	} else {
+		delete(m.FormHost.Properties, "ProxyJump")
+	}
+	if m.FormForwardAgent != "" {
+		m.FormHost.Properties["ForwardAgent"] = m.FormForwardAgent
+	} else {
+		delete(m.FormHost.Properties, "ForwardAgent")
+	}
+
+	switch m.FormAction {
+	case actionAdd:
+		err = m.Manager.AddHost(m.FormHost.SourceFile, m.FormHost)
+		if err == nil {
+			m.AlertText = fmt.Sprintf("Host %q added successfully!", m.FormHost.Alias)
+		}
+	case actionEdit:
+		err = m.Manager.UpdateHost(m.FormOriginalAlias, m.FormHost)
+		if err == nil {
+			m.AlertText = fmt.Sprintf("Host %q updated successfully!", m.FormHost.Alias)
+		}
+	}
+
+	if err != nil {
+		m.ErrorText = "Error saving host: " + err.Error()
+	}
+
+	m.Reload()
 }

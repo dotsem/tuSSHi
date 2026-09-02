@@ -20,7 +20,7 @@ func (m *Model) renderFooter(width int) string {
 	case ModeCommand:
 		cmdBar = m.CommandInput.View()
 	case ModeSearch:
-		cmdBar = style.NormalPrompt.Render("[Search Mode] ") + getSearchShortcuts(width)
+		cmdBar = style.NormalPrompt.Render("[Search] ") + getSearchShortcuts(width)
 	default:
 		cmdBar = style.Footer.Render(getShortcuts(width))
 	}
@@ -57,7 +57,7 @@ func getShortcuts(width int) string {
 }
 
 func getSearchShortcuts(width int) string {
-	full := "[Search] Type to filter. Esc/Enter: Done"
+	full := "Type to filter. Esc/Enter: Done"
 	short := "Type to filter • Esc: Exit"
 	if width >= len(full) {
 		return full

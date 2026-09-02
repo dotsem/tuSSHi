@@ -1,8 +1,19 @@
 package commands
 
-// Quit executes the application quit request.
-func Quit() func(Context) {
-	return func(ctx Context) {
-		ctx.Quit()
-	}
+type quitCommand struct{}
+
+func (q *quitCommand) Keys() []string {
+	return []string{"q", "quit"}
+}
+
+func (q *quitCommand) Description() string {
+	return "Exit the application"
+}
+
+func (q *quitCommand) Execute(ctx Context, _ []string) {
+	ctx.Quit()
+}
+
+func init() {
+	Register(&quitCommand{})
 }
