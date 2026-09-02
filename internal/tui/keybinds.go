@@ -113,13 +113,7 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, m.ActiveComponent.Init()
 
 	case utils.MatchesMultipleStringOptions(msg.String(), constants.KeyEnter):
-		if len(m.Filtered) > 0 {
-			selected := m.Filtered[m.SelectedIndex]
-			sshCmd := ssh.NewSSHCommand(selected.Alias)
-			return m, tea.ExecProcess(sshCmd, func(err error) tea.Msg {
-				return SSHFinishedMsg{Err: err}
-			})
-		}
+		return m.connectSelectedHost()
 	}
 
 	return m, nil
@@ -128,9 +122,26 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // handleSearchKey processes keyboard input when performing a text search.
 func (m *Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
-	case constants.KeyEsc, constants.KeyEnter:
+	case constants.KeyEsc:
 		m.Mode = ModeNormal
 		m.SearchInput.Blur()
+		return m, nil
+
+	case constants.KeyEnter:
+		m.Mode = ModeNormal
+		m.SearchInput.Blur()
+		return m.connectSelectedHost()
+
+	case "up": // TODO: maybe refactor keybinds constants? but this would likely never change...
+		if m.SelectedIndex > 0 {
+			m.SelectedIndex--
+		}
+		return m, nil
+
+	case "down":
+		if m.SelectedIndex < len(m.Filtered)-1 {
+			m.SelectedIndex++
+		}
 		return m, nil
 	}
 
@@ -158,4 +169,16 @@ func (m *Model) handleCommandKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	var cmdCmd tea.Cmd
 	m.CommandInput, cmdCmd = m.CommandInput.Update(msg)
 	return m, cmdCmd
+}
+
+func (m *Model) connectSelectedHost() (tea.Model, tea.Cmd) {
+	if len(m.Filtered) == 0 {
+		return m, nil
+	}
+	selected := m.Filtered[m.SelectedIndex]
+	sshCmd := ssh.NewSSHCommand(selected.Alias)
+	return m, tea.ExecProcess(sshCmd, func(err error) tea.Msg {
+		return SSHFinishedMsg{Err: err}
+	})
+
 }
