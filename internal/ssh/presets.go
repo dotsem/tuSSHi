@@ -19,7 +19,7 @@ var Presets = []ServicePreset{
 	{Name: "GitHub", KeyName: "github", HostName: "github.com", User: defaultUserGit},
 	{Name: "GitLab", KeyName: "gitlab", HostName: "gitlab.com", User: defaultUserGit},
 	// TODO: add more
-	{Name: "Custom", KeyName: "service", HostName: "service", User: defaultUserGit},
+	{Name: "Custom", KeyName: "service", HostName: PresetCustom, User: defaultUserGit},
 }
 
 // FindPreset returns the preset matching the given name, hostname, or keyname.

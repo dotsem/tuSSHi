@@ -8,6 +8,7 @@ import (
 	"tusshi/internal/ssh"
 	"tusshi/internal/tui/components"
 	"tusshi/internal/tui/theme"
+	"tusshi/internal/utils"
 
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
@@ -19,7 +20,7 @@ func (c *cmdContext) OpenServiceForm(action string, targetHost *config.Host) {
 		Action:      action,
 		KeySource:   keySourceGenerate,
 		KeyType:     ssh.KeyTypeED25519,
-		PresetAlias: "github",
+		PresetAlias: "github.com",
 	}
 
 	if action == actionEdit && targetHost != nil {
@@ -30,6 +31,8 @@ func (c *cmdContext) OpenServiceForm(action string, targetHost *config.Host) {
 		state.KeyPath = targetHost.IdentityFile
 		state.KeySource = keySourceExisting
 		if preset, ok := ssh.FindPreset(targetHost.Alias); ok {
+			state.PresetAlias = preset.HostName
+		} else if preset, ok := ssh.FindPreset(targetHost.Name); ok {
 			state.PresetAlias = preset.HostName
 		} else {
 			state.PresetAlias = ssh.PresetCustom
@@ -75,7 +78,7 @@ func (c *cmdContext) DeleteService(alias string) {
 		return
 	}
 
-	keyPath := expandTildePath(found.IdentityFile)
+	keyPath := utils.ExpandTilde(found.IdentityFile)
 	var hasKeyFile bool
 	if keyPath != "" {
 		if _, err := os.Stat(keyPath); err == nil {
@@ -161,11 +164,16 @@ func (m *Model) executeServiceFormSubmit(s *ServiceFormState) {
 		}
 	}
 
+	keyPath := s.KeyPath
+	if keyPath == "" {
+		keyPath = resolved
+	}
+
 	h := &config.Host{
 		Alias:        s.HostAlias,
 		Name:         s.HostName,
 		User:         s.HostUser,
-		IdentityFile: resolved,
+		IdentityFile: keyPath,
 		IsService:    true,
 		Properties:   make(map[string]string),
 	}

@@ -27,6 +27,15 @@ func TestFindPreset(t *testing.T) {
 		assert.Equal(t, "git", preset.User)
 	})
 
+	t.Run("returns built-in custom preset", func(t *testing.T) {
+		preset, ok := ssh.FindPreset(ssh.PresetCustom)
+		assert.True(t, ok)
+		assert.Equal(t, "Custom", preset.Name)
+		assert.Equal(t, "service", preset.KeyName)
+		assert.Equal(t, ssh.PresetCustom, preset.HostName)
+		assert.Equal(t, "git", preset.User)
+	})
+
 	t.Run("returns false for unknown preset", func(t *testing.T) {
 		_, ok := ssh.FindPreset("unknown-service")
 		assert.False(t, ok)

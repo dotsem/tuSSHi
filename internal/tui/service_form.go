@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	tussh "tusshi/internal/ssh"
+	"tusshi/internal/utils"
+	"tusshi/internal/validation"
 
 	"github.com/charmbracelet/huh"
 )
@@ -68,7 +70,7 @@ func BuildServiceForm(s *ServiceFormState) *huh.Form {
 		Placeholder("~/.ssh/id_ed25519").
 		Value(&s.KeyPath).
 		Validate(func(v string) error {
-			expanded := expandTildePath(v)
+			expanded := utils.ExpandTilde(v)
 			if _, err := os.Stat(expanded); err != nil {
 				return fmt.Errorf("file not found: %s", expanded)
 			}
@@ -78,7 +80,8 @@ func BuildServiceForm(s *ServiceFormState) *huh.Form {
 	inputHostAlias := huh.NewInput().
 		Title("Host Alias").
 		Description("Name used in SSH config (e.g. github or github-work)").
-		Value(&s.HostAlias)
+		Value(&s.HostAlias).
+		Validate(validation.ValidateAlias)
 
 	inputHostName := huh.NewInput().
 		Title("HostName").
@@ -95,16 +98,16 @@ func BuildServiceForm(s *ServiceFormState) *huh.Form {
 			return
 		}
 		if s.PresetAlias != s.lastPreset || s.KeyType != s.lastKeyType {
-			if preset, ok := tussh.FindPreset(s.PresetAlias); ok {
-				s.HostAlias = preset.HostName
-				s.HostName = preset.HostName
-				s.HostUser = preset.User
-			} else if s.PresetAlias == tussh.PresetCustom {
+			if s.PresetAlias == tussh.PresetCustom {
 				if s.lastPreset != "" {
 					s.HostAlias = ""
 					s.HostName = ""
 					s.HostUser = "git"
 				}
+			} else if preset, ok := tussh.FindPreset(s.PresetAlias); ok {
+				s.HostAlias = preset.HostName
+				s.HostName = preset.HostName
+				s.HostUser = preset.User
 			}
 			s.KeyPath = s.ProvideDefaultKeyPath()
 
@@ -173,23 +176,31 @@ func BuildServiceForm(s *ServiceFormState) *huh.Form {
 
 // ApplyPreset fills HostAlias, HostName, and HostUser from the selected preset if still empty on submit.
 func (s *ServiceFormState) ApplyPreset() {
-	if preset, ok := tussh.FindPreset(s.PresetAlias); ok {
-		s.HostAlias = preset.HostName
-		s.HostName = preset.HostName
-		s.HostUser = preset.User
-	} else if s.PresetAlias == tussh.PresetCustom {
+	if s.PresetAlias == tussh.PresetCustom {
 		if s.HostUser == "" {
 			s.HostUser = "git"
 		}
+	} else if preset, ok := tussh.FindPreset(s.PresetAlias); ok {
+		if s.HostAlias == "" {
+			s.HostAlias = preset.HostName
+		}
+		if s.HostName == "" {
+			s.HostName = preset.HostName
+		}
+		if s.HostUser == "" {
+			s.HostUser = preset.User
+		}
 	}
 
-	s.KeyPath = s.ProvideDefaultKeyPath()
+	if s.KeyPath == "" {
+		s.KeyPath = s.ProvideDefaultKeyPath()
+	}
 }
 
 // ProvideDefaultKeyPath generates a non-colliding default SSH key path.
 func (s *ServiceFormState) ProvideDefaultKeyPath() string {
 	keyBaseName := ""
-	if preset, ok := tussh.FindPreset(s.PresetAlias); ok && preset.KeyName != "" {
+	if preset, ok := tussh.FindPreset(s.PresetAlias); ok && s.PresetAlias != tussh.PresetCustom && preset.KeyName != "" {
 		keyBaseName = preset.KeyName
 	} else {
 		keyBaseName = s.HostAlias
@@ -230,15 +241,5 @@ func (s *ServiceFormState) ProvideDefaultKeyPath() string {
 
 // ResolvedKeyPath returns the expanded absolute path for the configured key.
 func (s *ServiceFormState) ResolvedKeyPath() string {
-	return expandTildePath(s.KeyPath)
-}
-
-func expandTildePath(path string) string {
-	if strings.HasPrefix(path, "~/") {
-		home, err := os.UserHomeDir()
-		if err == nil {
-			return filepath.Join(home, path[2:])
-		}
-	}
-	return path
+	return utils.ExpandTilde(s.KeyPath)
 }

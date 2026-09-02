@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"tusshi/internal/utils"
 )
 
 // Key type identifiers supported by ssh-keygen.
@@ -25,6 +26,8 @@ func GenerateKey(path, keyType, comment string) error {
 		keyType = KeyTypeED25519
 	}
 
+	path = utils.ExpandTilde(path)
+
 	args := []string{"-t", keyType, "-f", path, "-N", "", "-C", comment}
 	if keyType == KeyTypeRSA {
 		args = append(args, "-b", "4096")
@@ -41,7 +44,7 @@ func GenerateKey(path, keyType, comment string) error {
 
 // ReadPublicKey reads the public key file corresponding to the given private key path.
 func ReadPublicKey(privateKeyPath string) (string, error) {
-	pubPath := privateKeyPath + ".pub"
+	pubPath := utils.ExpandTilde(privateKeyPath) + ".pub"
 	data, err := os.ReadFile(pubPath) // #nosec G304 — user-provided path from TUI
 	if err != nil {
 		return "", fmt.Errorf("reading public key %q: %w", pubPath, err)
