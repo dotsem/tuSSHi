@@ -42,6 +42,41 @@ func TestServiceFormState(t *testing.T) {
 		assert.Contains(t, state.KeyPath, "id_ed25519_gitlab")
 	})
 
+	t.Run("ApplyPreset does not overwrite user-entered fields when populated", func(t *testing.T) {
+		state := &tui.ServiceFormState{
+			Action:      "add",
+			PresetAlias: "github.com",
+			KeySource:   "existing",
+			HostAlias:   "github-work",
+			HostName:    "github.mycorp.internal",
+			HostUser:    "custom-git",
+			KeyPath:     "~/.ssh/custom_key",
+		}
+
+		state.ApplyPreset()
+
+		assert.Equal(t, "github-work", state.HostAlias)
+		assert.Equal(t, "github.mycorp.internal", state.HostName)
+		assert.Equal(t, "custom-git", state.HostUser)
+		assert.Equal(t, "~/.ssh/custom_key", state.KeyPath)
+	})
+
+	t.Run("ApplyPreset handles custom preset without overriding alias and name", func(t *testing.T) {
+		state := &tui.ServiceFormState{
+			Action:      "add",
+			PresetAlias: tussh.PresetCustom,
+			HostAlias:   "bitbucket.org",
+			HostName:    "bitbucket.org",
+		}
+
+		state.ApplyPreset()
+
+		assert.Equal(t, "bitbucket.org", state.HostAlias)
+		assert.Equal(t, "bitbucket.org", state.HostName)
+		assert.Equal(t, "git", state.HostUser)
+		assert.Contains(t, state.KeyPath, "id_ed25519_bitbucket.org")
+	})
+
 	t.Run("ProvideDefaultKeyPath generates non-colliding key path", func(t *testing.T) {
 		state := &tui.ServiceFormState{
 			HostAlias: "github-work",

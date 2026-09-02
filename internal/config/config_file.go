@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"tusshi/internal/utils"
 
 	"github.com/kevinburke/ssh_config"
 )
@@ -14,7 +15,7 @@ import (
 // registers it with the primary SSH config via an Include directive,
 // and maps it internally for display and interaction.
 func (m *Manager) AddConfigFile(targetPath string) error {
-	absTarget := expandTilde(targetPath)
+	absTarget := utils.ExpandTilde(targetPath)
 	if abs, err := filepath.Abs(absTarget); err == nil {
 		absTarget = abs
 	}
@@ -61,12 +62,12 @@ func (m *Manager) AddConfigFile(targetPath string) error {
 // updates all internal tracking indices, redirects child hosts, and updates
 // the corresponding Include directive inside the primary config.
 func (m *Manager) RenameConfigFile(oldPath, newPath string) error {
-	absOld := expandTilde(oldPath)
+	absOld := utils.ExpandTilde(oldPath)
 	if abs, err := filepath.Abs(absOld); err == nil {
 		absOld = abs
 	}
 
-	absNew := expandTilde(newPath)
+	absNew := utils.ExpandTilde(newPath)
 	if abs, err := filepath.Abs(absNew); err == nil {
 		absNew = abs
 	}
@@ -114,7 +115,7 @@ func (m *Manager) RenameConfigFile(oldPath, newPath string) error {
 // its associated Include directive inside the primary configuration.
 // It fails if any host connections are still defined inside the file.
 func (m *Manager) DeleteConfigFile(targetPath string) error {
-	absTarget := expandTilde(targetPath)
+	absTarget := utils.ExpandTilde(targetPath)
 	if abs, err := filepath.Abs(absTarget); err == nil {
 		absTarget = abs
 	}

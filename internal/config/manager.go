@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+	"tusshi/internal/utils"
 
 	"github.com/kevinburke/ssh_config"
 )
@@ -28,7 +29,7 @@ type Manager struct {
 // NewManager creates and initializes a Manager with the specified primary config file.
 // It performs basic path expansion on the provided primary path.
 func NewManager(primaryPath string) *Manager {
-	absPath := expandTilde(primaryPath)
+	absPath := utils.ExpandTilde(primaryPath)
 	if abs, err := filepath.Abs(absPath); err == nil {
 		absPath = abs
 	}
@@ -184,7 +185,7 @@ func (m *Manager) loadPath(path string, depth int) error {
 
 // resolveAndLoadIncludes matches globs and recursively loads matched files.
 func (m *Manager) resolveAndLoadIncludes(pattern string, depth int) {
-	expanded := expandTilde(pattern)
+	expanded := utils.ExpandTilde(pattern)
 	if !filepath.IsAbs(expanded) {
 		expanded = filepath.Join(filepath.Dir(m.PrimaryPath), expanded)
 	}
@@ -218,17 +219,6 @@ func (m *Manager) buildGlobalConfig() *ssh_config.Config {
 		}
 	}
 	return &ssh_config.Config{Hosts: mergedHosts}
-}
-
-// expandTilde replaces ~/ prefix with the user home directory path.
-func expandTilde(path string) string {
-	if strings.HasPrefix(path, "~/") {
-		home, err := os.UserHomeDir()
-		if err == nil {
-			return filepath.Join(home, path[2:])
-		}
-	}
-	return path
 }
 
 // FindConfigFile searches FileOrder for a path matching the given name,

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"tusshi/internal/utils"
 
 	"github.com/kevinburke/ssh_config"
 )
@@ -15,7 +16,7 @@ import (
 // AddHost appends a new Host connection block to a specific target configuration file
 // and serializes the modified AST back to disk.
 func (m *Manager) AddHost(targetFile string, h *Host) error {
-	absTarget := expandTilde(targetFile)
+	absTarget := utils.ExpandTilde(targetFile)
 	if abs, err := filepath.Abs(absTarget); err == nil {
 		absTarget = abs
 	}
@@ -193,7 +194,7 @@ func (m *Manager) DeleteHost(alias string) error {
 
 // MoveHost transfers a host block from one configuration file to another.
 func (m *Manager) MoveHost(alias string, targetFile string) error {
-	absTarget := expandTilde(targetFile)
+	absTarget := utils.ExpandTilde(targetFile)
 	if abs, err := filepath.Abs(absTarget); err == nil {
 		absTarget = abs
 	}
