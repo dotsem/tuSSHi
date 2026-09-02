@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"strings"
 	"tusshi/internal/constants"
 	"tusshi/internal/ssh"
 	"tusshi/internal/tui/commands"
@@ -143,6 +144,12 @@ func (m *Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.SelectedIndex++
 		}
 		return m, nil
+
+		// TODO: test on multiple terminal emulators
+	case "ctrl+backspace", "ctrl+h", "ctrl+w": // why: kitty and xterm-compatible terminals transmit ctrl+backspace as ctrl+h
+		deleteWordBackwards(&m.SearchInput)
+		m.FilterHosts()
+		return m, nil
 	}
 
 	var searchCmd tea.Cmd
@@ -181,4 +188,25 @@ func (m *Model) connectSelectedHost() (tea.Model, tea.Cmd) {
 		return SSHFinishedMsg{Err: err}
 	})
 
+}
+
+func deleteWordBackwards(ti *textinput.Model) {
+	val := ti.Value()
+	pos := ti.Position()
+	if pos == 0 || len(val) == 0 {
+		return
+	}
+
+	left := strings.TrimRight(val[:pos], " ")
+	lastSpace := strings.LastIndex(left, " ")
+
+	var newVal string
+	if lastSpace == -1 {
+		newVal = val[pos:]
+		ti.SetCursor(0)
+	} else {
+		newVal = left[:lastSpace+1] + val[pos:]
+		ti.SetCursor(lastSpace + 1)
+	}
+	ti.SetValue(newVal)
 }
