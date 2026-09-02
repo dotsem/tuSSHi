@@ -171,6 +171,7 @@ func (m *Model) Reload() {
 }
 
 // FilterHosts filters and fuzzy-matches the host list using active tab and search query.
+// Handles index under & overflow for selectedIndex
 func (m *Model) FilterHosts() {
 	var filtered []*config.Host
 	searchQ := strings.ToLower(m.SearchInput.Value())
