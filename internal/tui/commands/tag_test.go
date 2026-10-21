@@ -7,6 +7,7 @@ import (
 
 	"tusshi/internal/config"
 	"tusshi/internal/tui/commands"
+	"tusshi/internal/tui/components"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -24,6 +25,7 @@ func (m *mockContext) OpenHelp()                                     {}
 func (m *mockContext) OpenForm(_ string)                             {}
 func (m *mockContext) SetAlert(text string)                          { m.alertText = text }
 func (m *mockContext) SetError(text string)                          { m.errorText = text }
+func (m *mockContext) AddToast(_ components.ToastAction, _ string)   {}
 func (m *mockContext) Reload()                                       { m.reloaded = true }
 func (m *mockContext) GetActiveTab() string                          { return "All" }
 func (m *mockContext) SetActiveTab(_ string)                         {}

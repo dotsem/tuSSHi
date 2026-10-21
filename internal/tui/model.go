@@ -62,15 +62,54 @@ type Model struct {
 	ActiveComponent components.Component
 
 	PingResults map[string]*PingResult
+
+	Toasts               *components.ToastQueue
+	PendingToastCmds     []tea.Cmd
+	PendingServiceChecks int
+	FailedServiceNames   []string
 }
 
 // Init initializes the Bubble Tea application state and returns initial commands.
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(
+	cmds := []tea.Cmd{
 		tea.SetWindowTitle("tuSSHi"),
 		textinput.Blink,
 		m.PingAll(),
-	)
+	}
+
+	serviceCount := 0
+	for _, h := range m.Hosts {
+		if h.IsService {
+			serviceCount++
+		}
+	}
+	if serviceCount > 0 {
+		m.PendingServiceChecks = serviceCount
+		cmds = append(cmds, m.CheckAllServices())
+	}
+
+	return m.WrapCmd(tea.Batch(cmds...))
+}
+
+// AddToast pushes a toast to the queue and records its auto-dismiss command.
+func (m *Model) AddToast(action components.ToastAction, message string) tea.Cmd {
+	if m.Toasts == nil {
+		m.Toasts = components.NewToastQueue()
+	}
+	_, cmd := m.Toasts.Add(action, message)
+	m.PendingToastCmds = append(m.PendingToastCmds, cmd)
+	return cmd
+}
+
+// WrapCmd flushes any pending toast timer commands alongside the given cmd.
+func (m *Model) WrapCmd(cmd tea.Cmd) tea.Cmd {
+	if len(m.PendingToastCmds) == 0 {
+		return cmd
+	}
+	m.PendingToastCmds = append(m.PendingToastCmds, cmd)
+	cmds := m.PendingToastCmds
+	m.PendingToastCmds = nil
+	return tea.Batch(cmds...)
 }
 
 // NewModel initializes and configures a TUSSHI TUI application state model.
@@ -89,6 +128,7 @@ func NewModel(mgr *config.Manager) *Model {
 		SearchInput:  searchIn,
 		CommandInput: cmdIn,
 		PingResults:  make(map[string]*PingResult),
+		Toasts:       components.NewToastQueue(),
 	}
 	m.Reload()
 

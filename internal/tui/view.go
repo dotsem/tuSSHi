@@ -75,6 +75,10 @@ func (m *Model) View() string {
 		bgString = strings.Join(finalLines, "\n")
 	}
 
+	if m.Toasts != nil {
+		bgString = m.Toasts.Overlay(bgString, m.Width, m.Height)
+	}
+
 	return bgString
 }
 

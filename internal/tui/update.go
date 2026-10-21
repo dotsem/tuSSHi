@@ -15,6 +15,14 @@ type SSHFinishedMsg struct {
 
 // Update processes terminal input and updates the state machine model losslessly.
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	newModel, cmd := m.handleUpdate(msg)
+	if mod, ok := newModel.(*Model); ok {
+		return mod, mod.WrapCmd(cmd)
+	}
+	return newModel, cmd
+}
+
+func (m *Model) handleUpdate(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
@@ -23,14 +31,21 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.CommandInput.Width = msg.Width - 6
 		return m, nil
 
+	case components.ToastExpiredMsg:
+		if m.Toasts != nil {
+			m.Toasts.Dismiss(msg.ID)
+		}
+		return m, nil
+
 	case SSHFinishedMsg:
+		var toastCmd tea.Cmd
 		if msg.Err != nil {
-			m.ErrorText = fmt.Sprintf("SSH session error: %v", msg.Err)
+			toastCmd = m.AddToast(components.ActionDelete, fmt.Sprintf("SSH error: %v", msg.Err))
 		} else {
-			m.AlertText = "SSH session disconnected."
+			toastCmd = m.AddToast(components.ActionInfo, "SSH session disconnected")
 		}
 		m.Reload()
-		return m, tea.Batch(tea.ClearScreen, m.PingAll())
+		return m, tea.Batch(tea.ClearScreen, m.PingAll(), toastCmd)
 
 	case PingResultMsg:
 		if m.PingResults == nil {
@@ -46,6 +61,22 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ServiceCheckResult:
 		if svc, ok := m.ActiveComponent.(*components.Services); ok {
 			svc.SetResult(msg.Alias, msg.Result)
+		}
+		if m.PendingServiceChecks > 0 {
+			m.PendingServiceChecks--
+			if !msg.Result.OK {
+				m.FailedServiceNames = append(m.FailedServiceNames, msg.Alias)
+			}
+			if m.PendingServiceChecks == 0 {
+				var cmd tea.Cmd
+				if len(m.FailedServiceNames) == 0 {
+					cmd = m.AddToast(components.ActionAdd, "All services connected")
+				} else {
+					cmd = m.AddToast(components.ActionDelete, fmt.Sprintf("%d service(s) failed connection", len(m.FailedServiceNames)))
+				}
+				m.FailedServiceNames = nil
+				return m, cmd
+			}
 		}
 		return m, nil
 
