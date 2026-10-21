@@ -1,0 +1,34 @@
+name: "Setup Go"
+description: "Setup Go with optionally installing dependencies"
+
+inputs:
+  go-version:
+    description: "Go version to use"
+    required: false
+    default: "1.26"
+  install-dependencies:
+    description: "Install dependencies"
+    required: false
+    default: "true"
+
+outputs:
+  go-version:
+    description: "The installed Go version"
+    value: ${{ steps.setup-go.outputs.go-version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Go
+      id: setup-go
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache: true
+        go-version-file: ${{ inputs.go-version == '' && 'go.mod' || '' }}
+        cache-dependency-path: go.sum
+
+    - name: Install dependencies
+      if: inputs.install-dependencies == 'true'
+      run: go mod download
+      shell: bash
