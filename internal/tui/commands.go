@@ -45,11 +45,18 @@ func (c *cmdContext) OpenForm(action string) {
 // SetAlert sets the model alert text banner.
 func (c *cmdContext) SetAlert(text string) {
 	c.model.AlertText = text
+	c.model.AddToast(components.ActionInfo, text)
 }
 
 // SetError sets the model error text banner.
 func (c *cmdContext) SetError(text string) {
 	c.model.ErrorText = text
+	c.model.AddToast(components.ActionDelete, text)
+}
+
+// AddToast pushes an action-colored toast notification to the model queue.
+func (c *cmdContext) AddToast(action components.ToastAction, message string) {
+	c.model.AddToast(action, message)
 }
 
 // Reload reloads the configurations.

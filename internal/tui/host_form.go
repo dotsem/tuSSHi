@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"tusshi/internal/config"
+	"tusshi/internal/tui/components"
 	"tusshi/internal/validation"
 
 	"github.com/charmbracelet/huh"
@@ -143,17 +144,17 @@ func (m *Model) executeFormSubmit() {
 	case actionAdd:
 		err = m.Manager.AddHost(m.FormHost.SourceFile, m.FormHost)
 		if err == nil {
-			m.AlertText = fmt.Sprintf("Host %q added successfully!", m.FormHost.Alias)
+			m.AddToast(components.ActionAdd, fmt.Sprintf("Host %q added successfully!", m.FormHost.Alias))
 		}
 	case actionEdit:
 		err = m.Manager.UpdateHost(m.FormOriginalAlias, m.FormHost)
 		if err == nil {
-			m.AlertText = fmt.Sprintf("Host %q updated successfully!", m.FormHost.Alias)
+			m.AddToast(components.ActionEdit, fmt.Sprintf("Host %q updated successfully!", m.FormHost.Alias))
 		}
 	}
 
 	if err != nil {
-		m.ErrorText = "Error saving host: " + err.Error()
+		m.AddToast(components.ActionDelete, "Error saving host: "+err.Error())
 	}
 
 	m.Reload()

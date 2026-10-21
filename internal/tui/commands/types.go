@@ -1,6 +1,9 @@
 package commands
 
-import "tusshi/internal/config"
+import (
+	"tusshi/internal/config"
+	"tusshi/internal/tui/components"
+)
 
 // Context defines the behavioral interface for executing TUI commands.
 type Context interface {
@@ -9,6 +12,7 @@ type Context interface {
 	OpenForm(action string)
 	SetAlert(text string)
 	SetError(text string)
+	AddToast(action components.ToastAction, message string)
 	Reload()
 	GetActiveTab() string
 	SetActiveTab(tab string)

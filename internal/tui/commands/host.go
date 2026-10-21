@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"path/filepath"
+	"tusshi/internal/tui/components"
 )
 
 type newHostCmd struct{}
@@ -39,9 +40,9 @@ func (c *deleteHostCmd) Execute(ctx Context, _ []string) {
 	ctx.Confirm(title, message, true, func() {
 		mgr := ctx.GetManager()
 		if err := mgr.DeleteHost(selected.Alias); err != nil {
-			ctx.SetError("Delete error: " + err.Error())
+			ctx.AddToast(components.ActionDelete, "Delete error: "+err.Error())
 		} else {
-			ctx.SetAlert(fmt.Sprintf("Deleted connection %q.", selected.Alias))
+			ctx.AddToast(components.ActionDelete, fmt.Sprintf("Deleted connection %q.", selected.Alias))
 		}
 		ctx.Reload()
 	})

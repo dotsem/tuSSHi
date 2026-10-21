@@ -94,9 +94,9 @@ func (c *cmdContext) DeleteService(alias string) {
 		OnConfirm: func() tea.Cmd {
 			if !hasKeyFile {
 				if err := c.model.Manager.DeleteHost(alias); err != nil {
-					c.model.ErrorText = "Failed to delete service host: " + err.Error()
+					c.model.AddToast(components.ActionDelete, "Failed to delete service host: "+err.Error())
 				} else {
-					c.model.AlertText = fmt.Sprintf("Service host %q deleted", alias)
+					c.model.AddToast(components.ActionDelete, fmt.Sprintf("Service host %q deleted", alias))
 				}
 				c.model.Reload()
 				return nil
@@ -113,18 +113,18 @@ func (c *cmdContext) DeleteService(alias string) {
 					_ = os.Remove(keyPath)
 					_ = os.Remove(keyPath + ".pub")
 					if err := c.model.Manager.DeleteHost(alias); err != nil {
-						c.model.ErrorText = "Failed to delete service host: " + err.Error()
+						c.model.AddToast(components.ActionDelete, "Failed to delete service host: "+err.Error())
 					} else {
-						c.model.AlertText = fmt.Sprintf("Service host %q and SSH key files deleted", alias)
+						c.model.AddToast(components.ActionDelete, fmt.Sprintf("Service host %q and SSH key files deleted", alias))
 					}
 					c.model.Reload()
 					return nil
 				},
 				OnCancel: func() tea.Cmd {
 					if err := c.model.Manager.DeleteHost(alias); err != nil {
-						c.model.ErrorText = "Failed to delete service host: " + err.Error()
+						c.model.AddToast(components.ActionDelete, "Failed to delete service host: "+err.Error())
 					} else {
-						c.model.AlertText = fmt.Sprintf("Service host %q deleted (keys preserved)", alias)
+						c.model.AddToast(components.ActionDelete, fmt.Sprintf("Service host %q deleted (keys preserved)", alias))
 					}
 					c.model.Reload()
 					return nil
@@ -209,5 +209,5 @@ func (m *Model) executeServiceFormSubmit(s *ServiceFormState) {
 		return
 	}
 
-	m.AlertText = fmt.Sprintf("Service host %q configured", s.HostAlias)
+	m.AddToast(components.ActionAdd, fmt.Sprintf("Service host %q configured", s.HostAlias))
 }
