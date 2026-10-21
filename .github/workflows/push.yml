@@ -1,8 +1,8 @@
 name: CI
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
 
 on:
   push:
@@ -21,16 +21,18 @@ jobs:
   lint:
     name: Static Code Analysis
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["v2.12.2"]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Set up Go
         id: setup-go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version: "1.26"
-          cache: true
+          install-dependencies: "false"
 
       - name: Check Formatting (gofmt)
         run: |
@@ -44,14 +46,14 @@ jobs:
 
       - name: Cache golangci-lint binary
         id: cache-golangci-lint
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ~/go/bin/golangci-lint
-          key: ${{ runner.os }}-golangci-lint-latest-${{ steps.setup-go.outputs.go-version }}
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-golangci-lint-${{ matrix.version }}
 
       - name: Install golangci-lint
         if: steps.cache-golangci-lint.outputs.cache-hit != 'true'
-        run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+        run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${{ matrix.version }}
 
       - name: Run golangci-lint
         run: $(go env GOPATH)/bin/golangci-lint run --config=.golangci.yml
@@ -59,27 +61,29 @@ jobs:
   vulncheck:
     name: Security Vulnerability Scan
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["v1.8.0"]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Set up Go
         id: setup-go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version: "1.26"
-          cache: true
+          install-dependencies: "false"
 
       - name: Cache govulncheck binary
         id: cache-govulncheck
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ~/go/bin/govulncheck
-          key: ${{ runner.os }}-govulncheck-latest-${{ steps.setup-go.outputs.go-version }}
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-govulncheck-${{ matrix.version }}
 
       - name: Install govulncheck
         if: steps.cache-govulncheck.outputs.cache-hit != 'true'
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+        run: go install golang.org/x/vuln/cmd/govulncheck@${{ matrix.version }}
 
       - name: Run govulncheck
         run: govulncheck ./...
@@ -89,19 +93,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.26"
-          cache: true
-
-      - name: Download Go dependencies
-        run: go mod download
+        uses: ./.github/actions/setup-go
 
       - name: Build Project
-        run: go build -v ./...
+        run: go build -v ./cmd/tusshi
 
       - name: Run Unit Tests
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
