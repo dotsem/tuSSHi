@@ -4,13 +4,15 @@ import (
 	"strings"
 	"testing"
 
+	"tusshi/internal/tui/theme"
+
 	"github.com/charmbracelet/x/ansi"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestToastQueue(t *testing.T) {
 	t.Run("adds toast within capacity", func(t *testing.T) {
-		q := NewToastQueue()
+		q := NewToastQueue(theme.Mock)
 		toast, cmd := q.Add(ActionAdd, "Host added")
 
 		assert.NotEmpty(t, toast.ID)
@@ -21,7 +23,7 @@ func TestToastQueue(t *testing.T) {
 	})
 
 	t.Run("caps at maximum 3 toasts and prunes oldest", func(t *testing.T) {
-		q := NewToastQueue()
+		q := NewToastQueue(theme.Mock)
 		q.Add(ActionAdd, "Toast 1")
 		q.Add(ActionEdit, "Toast 2")
 		q.Add(ActionDelete, "Toast 3")
@@ -36,7 +38,7 @@ func TestToastQueue(t *testing.T) {
 	})
 
 	t.Run("dismisses specific toast by ID", func(t *testing.T) {
-		q := NewToastQueue()
+		q := NewToastQueue(theme.Mock)
 		t1, _ := q.Add(ActionAdd, "First")
 		t2, _ := q.Add(ActionEdit, "Second")
 
@@ -52,14 +54,16 @@ func TestToastQueue(t *testing.T) {
 		tDelete := Toast{Action: ActionDelete}
 		tInfo := Toast{Action: ActionInfo}
 
-		assert.Equal(t, colorAdd, tAdd.BorderColor())
-		assert.Equal(t, colorEdit, tEdit.BorderColor())
-		assert.Equal(t, colorDelete, tDelete.BorderColor())
-		assert.Equal(t, colorInfo, tInfo.BorderColor())
+		th := theme.Global
+
+		assert.Equal(t, th.Success, tAdd.BorderColor(th))
+		assert.Equal(t, th.Info, tEdit.BorderColor(th))
+		assert.Equal(t, th.Error, tDelete.BorderColor(th))
+		assert.Equal(t, th.Muted, tInfo.BorderColor(th))
 	})
 
 	t.Run("overlays without panicking on empty or small buffers", func(t *testing.T) {
-		q := NewToastQueue()
+		q := NewToastQueue(theme.Mock)
 		assert.Equal(t, "base", q.Overlay("base", 80, 24))
 
 		q.Add(ActionAdd, "Connected")
@@ -76,7 +80,7 @@ func TestToastQueue(t *testing.T) {
 			"│ line 4                                │\n" +
 			"│ line 5                                │\n" +
 			"╰───────────────────────────────────────╯"
-		q := NewToastQueue()
+		q := NewToastQueue(theme.Mock)
 		q.Add(ActionEdit, `Host "my-cool-server" updated success...`)
 		res := q.Overlay(box, 41, 7)
 		for line := range strings.SplitSeq(res, "\n") {

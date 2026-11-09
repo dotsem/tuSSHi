@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	tussh "tusshi/internal/ssh"
+	"tusshi/internal/tui/style"
 	"tusshi/internal/utils"
 	"tusshi/internal/validation"
 
@@ -167,7 +168,7 @@ func BuildServiceForm(s *ServiceFormState) *huh.Form {
 	})
 
 	form := huh.NewForm(step1, step2generate, step2existing, step3).
-		WithTheme(huh.ThemeCharm()).
+		WithTheme(style.Form()).
 		WithWidth(60).
 		WithShowHelp(false)
 

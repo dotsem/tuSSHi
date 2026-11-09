@@ -51,7 +51,7 @@ func (h *Help) View(width int) string {
 
 	divider := lipgloss.NewStyle().Foreground(h.Theme.Muted).Render(strings.Repeat("─", width))
 	keyStyle := lipgloss.NewStyle().Foreground(h.Theme.Secondary).Bold(true)
-	descStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
+	descStyle := lipgloss.NewStyle().Foreground(h.Theme.Text)
 
 	rows := []string{
 		titleStyle.Render("Available Commands"),

@@ -75,7 +75,7 @@ func (c *Confirm) View(width int) string {
 		Width(width)
 
 	msgStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255")).
+		Foreground(c.Theme.Text).
 		Align(lipgloss.Center).
 		Width(width)
 
@@ -83,19 +83,19 @@ func (c *Confirm) View(width int) string {
 
 	btnActive := lipgloss.NewStyle().
 		Background(c.Theme.Primary).
-		Foreground(lipgloss.Color("0")).
+		Foreground(c.Theme.OnAccent).
 		Bold(true).
 		Padding(0, 3)
 
 	btnDestructive := lipgloss.NewStyle().
 		Background(c.Theme.Error).
-		Foreground(lipgloss.Color("0")).
+		Foreground(c.Theme.OnAccent).
 		Bold(true).
 		Padding(0, 3)
 
 	btnInactive := lipgloss.NewStyle().
-		Background(lipgloss.Color("237")).
-		Foreground(lipgloss.Color("252")).
+		Background(c.Theme.Highlight).
+		Foreground(c.Theme.Text).
 		Padding(0, 3)
 
 	var yesBtn, noBtn string
