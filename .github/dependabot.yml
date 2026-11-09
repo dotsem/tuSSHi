@@ -19,7 +19,7 @@ updates:
           - "*"
 
   # Go modules
-  - package-ecosystem: "go-mod"
+  - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "weekly"
