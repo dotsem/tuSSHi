@@ -1,4 +1,4 @@
-<img width="200" alt="tusshi logo" src="assets/tusshi.png" align="right">
+<img alt="tusshi logo" src="assets/logo.svg" width="200">
 
 # tuSSHi
 
@@ -38,7 +38,7 @@ You can run the compiled binary directly or move it into a directory in your sys
 mv tusshi /usr/local/bin/
 ```
 
-### Installing on Linux 
+### Installing on Linux
 
 ```bash
 ./linux-install.sh
@@ -79,6 +79,7 @@ tusshi -config ~/path/to/alternative/ssh_config
 ## Interface and Navigation
 
 The interface is structured into four main areas:
+
 1. Header: Displays the application name and tabs corresponding to your config files.
 2. Main Body: A table listing your connections (Alias, Hostname, User, Port, and Source File).
 3. Search / Status Bar: Shows active search queries or error/alert banners.
@@ -104,9 +105,9 @@ Type a colon (:) in normal mode to open the command prompt. The following comman
 
 * :new (or :n): Open the interactive connection creator form.
 * :edit (or :e): Edit the selected connection.
-* :delete-config <filename> (or :rmconf): Delete an empty configuration file.
-* :add-config <filename> (or :addconf): Add a new configuration file.
-* :rename-config <old-name> <new-name> (or :mvconf): Rename an existing configuration file.
+* :delete-config <filename></filename> (or :rmconf): Delete an empty configuration file.
+* :add-config <filename></filename> (or :addconf): Add a new configuration file.
+* :rename-config <old-name></old> <new-name></new> (or :mvconf): Rename an existing configuration file.
 * :help (or :h or :?): Open the interactive help overlay showing available commands.
 * :quit (or :q): Exit the application.
 
