@@ -5,6 +5,7 @@ import (
 	"strings"
 	"tusshi/internal/config"
 	"tusshi/internal/tui/style"
+	"tusshi/internal/tui/theme"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -138,14 +139,14 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 	var cells []string
 
 	alias := truncate(h.Alias, wAlias)
-	cells = append(cells, renderCell(alias, rowCellStyle(rowActive, "252"), rowActive, wAlias))
+	cells = append(cells, renderCell(alias, rowCellStyle(rowActive, theme.Global.Text), rowActive, wAlias))
 
 	name := truncate(h.Name, wName)
-	cells = append(cells, renderCell(name, rowCellStyle(rowActive, "250"), rowActive, wName))
+	cells = append(cells, renderCell(name, rowCellStyle(rowActive, theme.Global.Text), rowActive, wName))
 
 	if wUser > 0 {
 		user := truncate(h.User, wUser)
-		cells = append(cells, renderCell(user, rowCellStyle(rowActive, "245"), rowActive, wUser))
+		cells = append(cells, renderCell(user, rowCellStyle(rowActive, theme.Global.Muted), rowActive, wUser))
 	}
 
 	if wPort > 0 {
@@ -154,20 +155,20 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 			port = "22"
 		}
 		port = truncate(port, wPort)
-		cells = append(cells, renderCell(port, rowCellStyle(rowActive, "242"), rowActive, wPort))
+		cells = append(cells, renderCell(port, rowCellStyle(rowActive, theme.Global.Muted), rowActive, wPort))
 	}
 
 	if wTags > 0 {
 		tagsStr := strings.Join(h.Tags, ", ")
 		tagsStr = truncate(tagsStr, wTags)
-		cells = append(cells, renderCell(tagsStr, rowCellStyle(rowActive, "244"), rowActive, wTags))
+		cells = append(cells, renderCell(tagsStr, rowCellStyle(rowActive, theme.Global.Muted), rowActive, wTags))
 	}
 
 	if wConfig > 0 {
 		cfgNickname := strings.TrimSuffix(GetTabLabel(h.SourceFile), ".conf")
 		cfgNickname = strings.TrimSuffix(cfgNickname, "config")
 		cfgNickname = truncate(cfgNickname, wConfig)
-		cells = append(cells, renderCell(cfgNickname, rowCellStyle(rowActive, "240"), rowActive, wConfig))
+		cells = append(cells, renderCell(cfgNickname, rowCellStyle(rowActive, theme.Global.Muted), rowActive, wConfig))
 	}
 
 	if wStatus > 0 {
@@ -184,9 +185,9 @@ func (m *Model) renderRow(h *config.Host, idx int, wAlias, wName, wUser, wPort, 
 
 	var prefixStyle lipgloss.Style
 	if rowActive {
-		prefixStyle = lipgloss.NewStyle().Background(lipgloss.Color("237")).Foreground(lipgloss.Color("#FF5500")).Bold(true)
+		prefixStyle = lipgloss.NewStyle().Background(theme.Global.Highlight).Foreground(theme.Global.Primary).Bold(true)
 	} else {
-		prefixStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("252"))
+		prefixStyle = lipgloss.NewStyle().Foreground(theme.Global.Text)
 	}
 
 	return prefixStyle.Render(prefix) + rowContent
@@ -203,9 +204,9 @@ func truncate(s string, w int) string {
 	return s
 }
 
-func rowCellStyle(rowActive bool, normalColor string) lipgloss.Style {
+func rowCellStyle(rowActive bool, normalColor lipgloss.TerminalColor) lipgloss.Style {
 	if rowActive {
-		return lipgloss.NewStyle().Foreground(lipgloss.Color("255")).Bold(true)
+		return lipgloss.NewStyle().Foreground(theme.Global.Text).Bold(true)
 	}
-	return lipgloss.NewStyle().Foreground(lipgloss.Color(normalColor))
+	return lipgloss.NewStyle().Foreground(normalColor)
 }

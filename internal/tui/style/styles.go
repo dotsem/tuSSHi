@@ -15,7 +15,7 @@ var (
 		Padding(0, 1)
 
 	TabActive = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("255")).
+			Foreground(theme.Global.OnAccent).
 			Background(theme.Global.Primary).
 			Bold(true).
 			Padding(0, 2)
@@ -25,7 +25,7 @@ var (
 			Padding(0, 2)
 
 	TagTabActive = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("255")).
+			Foreground(theme.Global.OnAccent).
 			Background(theme.Global.Secondary).
 			Bold(true).
 			Padding(0, 2)
@@ -42,12 +42,12 @@ var (
 			Bold(true)
 
 	RowActive = lipgloss.NewStyle().
-			Background(lipgloss.Color("237")).
-			Foreground(lipgloss.Color("255")).
+			Background(theme.Global.Highlight).
+			Foreground(theme.Global.Text).
 			Bold(true)
 
 	RowInactive = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("252"))
+			Foreground(theme.Global.Text)
 
 	Cell = lipgloss.NewStyle().
 		Padding(0, 1)
@@ -95,10 +95,10 @@ var (
 		Foreground(theme.Global.Muted)
 
 	StatusOnline = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#00FF00")).
+			Foreground(theme.Global.Success).
 			Bold(true)
 
 	StatusOffline = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0000")).
+			Foreground(theme.Global.Error).
 			Bold(true)
 )

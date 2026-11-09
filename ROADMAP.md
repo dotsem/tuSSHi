@@ -19,9 +19,9 @@ This document outlines the planned design improvements, features, and core focus
 ## 2. Terminal & Theme Integration
 
 ### System Theme & Adaptive Color Palette
-- [ ] Integrate dynamic terminal color profile query (using libraries like `termenv` or ANSI queries) to auto-detect dark vs. light terminal backgrounds.
-- [ ] Adapt TUI element coloring dynamically to respect user terminal themes (ANSI palette colors) rather than using hardcoded hex color values.
-- [ ] Implement system-level accessibility support (respect `NO_COLOR` environment variable).
+- [x] Integrate dynamic terminal color profile query (using libraries like `termenv` or ANSI queries) to auto-detect dark vs. light terminal backgrounds. *(Not needed: all colors are ANSI palette slots, so the terminal theme handles dark/light.)*
+- [x] Adapt TUI element coloring dynamically to respect user terminal themes (ANSI palette colors) rather than using hardcoded hex color values.
+- [x] Implement system-level accessibility support (respect `NO_COLOR` environment variable).
 
 ---
 

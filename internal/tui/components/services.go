@@ -139,11 +139,11 @@ func (s *Services) View(width int) string {
 		Render(strings.Repeat("─", width))
 
 	muteStyle := lipgloss.NewStyle().Foreground(s.Theme.Muted)
-	onlineStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
-	offlineStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
+	onlineStyle := lipgloss.NewStyle().Foreground(s.Theme.Success)
+	offlineStyle := lipgloss.NewStyle().Foreground(s.Theme.Error)
 
 	selectedRowStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color("237")).
+		Background(s.Theme.Highlight).
 		Bold(true)
 
 	rows := []string{
@@ -187,11 +187,11 @@ func (s *Services) View(width int) string {
 			keyCell := truncateStr(shortenPath(h.IdentityFile), keyW)
 
 			if i == s.SelectedIndex {
-				indicator := muteStyle.Background(lipgloss.Color("237")).Bold(true).Render("○")
+				indicator := selectedRowStyle.Foreground(s.Theme.Text).Render("○")
 				if isOK {
-					indicator = onlineStyle.Background(lipgloss.Color("237")).Bold(true).Render("●")
+					indicator = selectedRowStyle.Foreground(s.Theme.Success).Render("●")
 				} else if hasError {
-					indicator = offlineStyle.Background(lipgloss.Color("237")).Bold(true).Render("●")
+					indicator = selectedRowStyle.Foreground(s.Theme.Error).Render("●")
 				}
 
 				padLeft := selectedRowStyle.Render("  ")

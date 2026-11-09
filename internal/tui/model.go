@@ -94,7 +94,7 @@ func (m *Model) Init() tea.Cmd {
 // AddToast pushes a toast to the queue and records its auto-dismiss command.
 func (m *Model) AddToast(action components.ToastAction, message string) tea.Cmd {
 	if m.Toasts == nil {
-		m.Toasts = components.NewToastQueue()
+		m.Toasts = components.NewToastQueue(theme.Global)
 	}
 	_, cmd := m.Toasts.Add(action, message)
 	m.PendingToastCmds = append(m.PendingToastCmds, cmd)
@@ -128,7 +128,7 @@ func NewModel(mgr *config.Manager) *Model {
 		SearchInput:  searchIn,
 		CommandInput: cmdIn,
 		PingResults:  make(map[string]*PingResult),
-		Toasts:       components.NewToastQueue(),
+		Toasts:       components.NewToastQueue(theme.Global),
 	}
 	m.Reload()
 

@@ -50,7 +50,7 @@ func (a *Alert) View(width int) string {
 		Width(width)
 
 	msgStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255")).
+		Foreground(a.Theme.Text).
 		Align(lipgloss.Center).
 		Width(width)
 

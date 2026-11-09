@@ -7,9 +7,18 @@ import (
 	"tusshi/internal/config"
 	"tusshi/internal/ping"
 	"tusshi/internal/tui/style"
+	"tusshi/internal/tui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+)
+
+const (
+	statusOnline   = "●"
+	statusChecking = "○"
+	statusOffline  = "✗"
+
+	smallStatusWidth = 10
 )
 
 // PingResult represents the status and latency of a single host connection test.
@@ -72,36 +81,30 @@ func (m *Model) PingAll() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-// renderStatusCell outputs a formatted Status string for the host table row.
+// renderStatusCell outputs a formatted Status string for the host table row,
+// prefixed with a symbol: filled circle online, hollow circle checking, cross offline.
 // Blends row active backgrounds and column width limits correctly.
 func (m *Model) renderStatusCell(alias string, rowActive bool, width int) string {
 	res, exists := m.PingResults[alias]
-	isSmall := width < 10
+	isSmall := width < smallStatusWidth
 
-	if !exists {
-		text := "Pending"
+	if !exists || res.Pending {
+		text := statusChecking + " Checking..."
 		if isSmall {
-			text = "○"
-		}
-		return renderCell(text, style.Muted, rowActive, width)
-	}
-	if res.Pending {
-		text := "Checking..."
-		if isSmall {
-			text = "○"
+			text = statusChecking
 		}
 		return renderCell(text, style.Muted, rowActive, width)
 	}
 	if res.Online {
-		text := fmt.Sprintf("Online (%.0fms)", res.Latency)
+		text := fmt.Sprintf("%s Online (%.0fms)", statusOnline, res.Latency)
 		if isSmall {
-			text = fmt.Sprintf("● %.0fms", res.Latency)
+			text = fmt.Sprintf("%s %.0fms", statusOnline, res.Latency)
 		}
 		return renderCell(text, style.StatusOnline, rowActive, width)
 	}
-	text := "Offline"
+	text := statusOffline + " Offline"
 	if isSmall {
-		text = "ø"
+		text = statusOffline
 	}
 	return renderCell(text, style.StatusOffline, rowActive, width)
 }
@@ -117,7 +120,7 @@ func renderCell(text string, cellStyle lipgloss.Style, rowActive bool, width int
 
 	finalStyle := cellStyle
 	if rowActive {
-		finalStyle = finalStyle.Background(lipgloss.Color("237"))
+		finalStyle = finalStyle.Background(theme.Global.Highlight)
 	}
 
 	styled := finalStyle.Render(text)
@@ -127,7 +130,7 @@ func renderCell(text string, cellStyle lipgloss.Style, rowActive bool, width int
 	if padLen > 0 {
 		padSpace := strings.Repeat(" ", padLen)
 		if rowActive {
-			padding = lipgloss.NewStyle().Background(lipgloss.Color("237")).Render(padSpace)
+			padding = lipgloss.NewStyle().Background(theme.Global.Highlight).Render(padSpace)
 		} else {
 			padding = padSpace
 		}

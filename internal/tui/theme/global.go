@@ -5,21 +5,27 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Why: colors reference slots of the terminal's own ANSI palette instead of fixed
+// RGB values, so the user's terminal theme decides the final appearance on both
+// dark and light backgrounds.
+const (
+	ansiBlack       = lipgloss.ANSIColor(0)
+	ansiRed         = lipgloss.ANSIColor(1)
+	ansiGreen       = lipgloss.ANSIColor(2)
+	ansiYellow      = lipgloss.ANSIColor(3)
+	ansiBlue        = lipgloss.ANSIColor(4)
+	ansiBrightBlack = lipgloss.ANSIColor(8)
+)
+
 // Global bundles the system theme colors for UI components.
 var Global = Theme{
-	Primary:   primary,
-	Secondary: secondary,
-	Muted:     muted,
-	Bg:        bg,
-	Success:   success,
-	Error:     errColor,
+	Primary:   ansiRed,
+	Secondary: ansiYellow,
+	Muted:     ansiBrightBlack,
+	Success:   ansiGreen,
+	Error:     ansiRed,
+	Info:      ansiBlue,
+	Text:      lipgloss.NoColor{},
+	OnAccent:  ansiBlack,
+	Highlight: ansiBrightBlack,
 }
-
-const (
-	primary   = lipgloss.Color("#FF5500")
-	secondary = lipgloss.Color("#A15101")
-	muted     = lipgloss.Color("#757575")
-	bg        = lipgloss.Color("#121212")
-	success   = lipgloss.Color("#FF7851")
-	errColor  = lipgloss.Color("#ff5050")
-)

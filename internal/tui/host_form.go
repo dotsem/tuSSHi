@@ -7,6 +7,7 @@ import (
 
 	"tusshi/internal/config"
 	"tusshi/internal/tui/components"
+	"tusshi/internal/tui/style"
 	"tusshi/internal/validation"
 
 	"github.com/charmbracelet/huh"
@@ -108,7 +109,7 @@ func (m *Model) BuildHostForm(defaultFile string) *huh.Form {
 	))
 
 	form := huh.NewForm(groups...).
-		WithTheme(huh.ThemeCharm()).
+		WithTheme(style.Form()).
 		WithWidth(60).
 		WithShowHelp(false)
 

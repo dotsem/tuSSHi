@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"tusshi/internal/tui/theme"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
@@ -22,10 +24,6 @@ const (
 )
 
 const (
-	colorAdd         = lipgloss.Color("#22c55e")
-	colorEdit        = lipgloss.Color("#3b82f6")
-	colorDelete      = lipgloss.Color("#ef4444")
-	colorInfo        = lipgloss.Color("#a1a1aa")
 	maxToasts        = 3
 	toastTTL         = 3 * time.Second
 	anchorHorizontal = 1
@@ -47,12 +45,14 @@ type ToastExpiredMsg struct {
 
 // ToastQueue manages a capped stack of active toasts.
 type ToastQueue struct {
+	Theme theme.Theme
 	items []Toast
 }
 
-// NewToastQueue initializes an empty toast queue.
-func NewToastQueue() *ToastQueue {
+// NewToastQueue initializes an empty toast queue styled with the given theme.
+func NewToastQueue(th theme.Theme) *ToastQueue {
 	return &ToastQueue{
+		Theme: th,
 		items: make([]Toast, 0, maxToasts),
 	}
 }
@@ -98,27 +98,27 @@ func (q *ToastQueue) Dismiss(id string) {
 }
 
 // BorderColor returns the border color mapped to the toast action.
-func (t *Toast) BorderColor() lipgloss.TerminalColor {
+func (t *Toast) BorderColor(th theme.Theme) lipgloss.TerminalColor {
 	switch t.Action {
 	case ActionAdd:
-		return colorAdd
+		return th.Success
 	case ActionEdit:
-		return colorEdit
+		return th.Info
 	case ActionDelete:
-		return colorDelete
+		return th.Error
 	default:
-		return colorInfo
+		return th.Muted
 	}
 }
 
 // Render compiles an individual toast into a styled bordered string.
-func (t *Toast) Render(maxWidth int) string {
+func (t *Toast) Render(maxWidth int, th theme.Theme) string {
 	contentWidth := max(maxWidth-4, 10)
 	msg := ansi.Truncate(t.Message, contentWidth, "…")
 
 	return lipgloss.NewStyle().
 		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(t.BorderColor()).
+		BorderForeground(t.BorderColor(th)).
 		Padding(0, 1).
 		Render(msg)
 }
@@ -131,7 +131,7 @@ func (q *ToastQueue) RenderStack(maxWidth int) string {
 
 	rendered := make([]string, len(q.items))
 	for i := range q.items {
-		rendered[i] = q.items[i].Render(maxWidth)
+		rendered[i] = q.items[i].Render(maxWidth, q.Theme)
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Right, rendered...)
