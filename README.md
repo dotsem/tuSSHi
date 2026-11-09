@@ -1,4 +1,4 @@
-<img alt="tusshi logo" src="assets/logo.svg" width="200">
+<img align="right" alt="tusshi logo" src="assets/logo.svg" width="200">
 
 # tuSSHi
 
