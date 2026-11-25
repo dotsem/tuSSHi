@@ -29,7 +29,7 @@ This document defines the coding standards, architectural decisions, and practic
 - **Clean Code**: No dead, unused, or commented-out code. Use named constants instead of magic numbers.
 
 ### 1.3 Development & Workflows
-- **Test Guard**: **NEVER** execute test suites natively (`go test` or `just test`, etc.) unless explicitly instructed by the developer.
+- **Test Runs**: Run only the tests you wrote or the ones affected by the change (single package, file or `-run` filter). Run the full suite (`just test`) only when explicitly asked.
 - **Linter & Formatter Integrity**: Never bypass formatters or linters. Before presenting or pushing code, formatting and linting checks must pass cleanly.
 - **AI Tooling Constraints**:
   - AI assistants must **never** run git commits or push changes under any circumstance. Commits are reserved exclusively for human execution.
